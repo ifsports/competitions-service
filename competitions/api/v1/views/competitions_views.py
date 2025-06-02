@@ -12,7 +12,8 @@ from competitions.models import (
 from competitions.api.v1.services import get_competition_standings, generate_league_competition, finish_match
 
 from competitions.api.v1.serializers import (
-    CompetitionSerializer, CompetitionTeamSerializer, RoundSerializer, RoundMatchesSerializer, MatchSerializer, ClassificationSerializer
+    CompetitionSerializer, CompetitionTeamSerializer, RoundSerializer, RoundMatchesSerializer, MatchSerializer,
+    ClassificationSerializer, CompetitionTeamsInfoSerializer
 )
 
 class CompetitionsAPIView(APIView):
@@ -136,17 +137,35 @@ class CompetitionTeamsAPIView(APIView):
 
     def post(self, request, competition_id):
         """"
-        Cria uma nova equipe para uma competição específica.
+        Verifica existencia de uma equipe para uma competição específica.
         """
         
         competition = get_object_or_404(Competition, id=competition_id)
 
-        serializer = CompetitionTeamSerializer(data = request.data, context={'competition': competition})
+        team_id_from_request = request.data.get('team_id')
+        if not team_id_from_request:
+            return Response(
+                {"message": "O campo 'team_id' é obrigatório."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
-        if serializer.is_valid():
-            team = serializer.save()
-            return Response(CompetitionTeamSerializer(team).data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        team_exists = CompetitionTeam.objects.filter(team_id=team_id_from_request, competition=competition).exists()
+
+        if team_exists:
+            return Response({
+                "can_be_inscribed": False,
+                "message": "A equipe já está inscrita nesta competição."
+            }, status=status.HTTP_409_CONFLICT)
+
+        else:
+            serializer = CompetitionTeamsInfoSerializer(competition)
+
+            return Response({
+                "can_be_inscribed": True,
+                "message": "A equipe pode ser inscrita nesta competição.",
+                "data": serializer.data,
+            }, status=status.HTTP_200_OK)
+
 
 class GenerateCompetitionsAPIView(APIView):
     permission_classes = [AllowAny]

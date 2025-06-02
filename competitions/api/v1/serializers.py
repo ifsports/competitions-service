@@ -45,6 +45,17 @@ class CompetitionTeamSerializer(serializers.ModelSerializer):
             validated_data['competition'] = self.context.get('competition')
         return super().create(validated_data)
 
+
+class CompetitionTeamsInfoSerializer(serializers.ModelSerializer):
+    team_uuids = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Competition
+        fields = ['id', 'min_members_per_team', 'team_uuids']
+
+    def get_team_uuids(self, competition_instance):
+        return competition_instance.competitionteam_set.values_list('team_id', flat=True)
+
 class MatchSerializer(serializers.ModelSerializer):
     group = serializers.PrimaryKeyRelatedField(queryset=Group.objects.all(), required=False)
     round = serializers.PrimaryKeyRelatedField(queryset=Round.objects.all(), required=False)
