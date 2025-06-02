@@ -30,7 +30,7 @@ else:
     print(f"INFO: Usando RABBITMQ_URL definida no ambiente: {RABBITMQ_URL}")
 
 
-MATCHES_EXCHANGE = "matches_exchange"
+MATCHES_EXCHANGE = "matches_commands_exchange"
 
 async def publish_match_created(match_data):
     """
