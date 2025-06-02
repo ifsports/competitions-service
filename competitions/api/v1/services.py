@@ -1,4 +1,6 @@
 from competitions.models import Competition, Round, CompetitionTeam, Match, Classification
+from competitions.api.v1.messeging.publishers import publish_match_created
+import asyncio
 
 def generate_league_competition(competition: Competition):
     """
@@ -47,6 +49,23 @@ def generate_league_competition(competition: Competition):
                 round_match_number=match_number,
                 status='pending',
             )
+
+            match_data = {
+                'competition_id': competition.id,
+                'round_id': round_obj.id,
+                'team_home_id': home.id,
+                'team_away_id': away.id,
+                'round_match_number': match_number,
+                'status': 'pending',
+            }
+
+            # Publica a partida criada no RabbitMQ
+            try:
+                asyncio.get_event_loop().run_until_complete(publish_match_created(match_data))
+            except RuntimeError:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                loop.run_until_complete(publish_match_created(match_data))
 
 def generate_knockout_competition(competition: Competition):
     pass

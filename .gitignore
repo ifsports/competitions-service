@@ -135,5 +135,4 @@ Thumbs.db
 # Por exemplo, se tiver ficheiros de configuração local não versionados
 local.py
 secrets.json
-competitions/fixtures
 docker-compose.yml
