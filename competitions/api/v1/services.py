@@ -41,7 +41,7 @@ def generate_league_competition(competition: Competition):
     for idx, round_matches in enumerate(rounds, start=1):
         round_obj = Round.objects.create(name=f'Rodada {idx}')
         for match_number, (home, away) in enumerate(round_matches, start=1):
-            Match.objects.create(
+            match = Match.objects.create(
                 competition=competition,
                 round=round_obj,
                 team_home=home,
@@ -51,11 +51,9 @@ def generate_league_competition(competition: Competition):
             )
 
             match_data = {
-                'competition_id': str(competition.id),
-                'round_id': str(round_obj.id),
-                'team_home_id': str(home.team_id),
-                'team_away_id': str(away.team_id),
-                'round_match_number': match_number,
+                'match_id': str(match.id),
+                'team_home_id': str(match.team_home.team_id),
+                'team_away_id': str(match.team_away.team_id),
                 'status': 'pending',
             }
 
