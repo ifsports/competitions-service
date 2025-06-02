@@ -53,8 +53,8 @@ def generate_league_competition(competition: Competition):
             match_data = {
                 'competition_id': competition.id,
                 'round_id': round_obj.id,
-                'team_home_id': home.id,
-                'team_away_id': away.id,
+                'team_home_id': home.team_id,
+                'team_away_id': away.team_id,
                 'round_match_number': match_number,
                 'status': 'pending',
             }
