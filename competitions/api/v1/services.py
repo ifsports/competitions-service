@@ -1,5 +1,5 @@
 from competitions.models import Competition, Round, CompetitionTeam, Match, Classification
-from competitions.api.v1.messeging.publishers import publish_match_created
+from competitions.api.v1.messaging.publishers import publish_match_created
 import asyncio
 
 def generate_league_competition(competition: Competition):
