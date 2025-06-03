@@ -2,6 +2,10 @@ from competitions.models import Competition, Round, CompetitionTeam, Match, Clas
 from competitions.api.v1.messaging.publishers import publish_match_created
 import asyncio
 
+import uuid
+from django.db import transaction, IntegrityError, close_old_connections
+
+
 def generate_league_competition(competition: Competition):
     """
     Gera uma competição do tipo 'league' com rounds (rodadas) e jogos.
@@ -194,3 +198,81 @@ def get_competition_standings(competition: Competition):
         pass
     else:
         raise ValueError("Tipo de competição desconhecido.")
+
+def update_team_from_request_in_db_django(message_data: dict) -> dict:
+    """
+    Processa a mensagem e atualiza/cria entidades no banco de dados usando Django ORM.
+    """
+    close_old_connections()
+
+    try:
+        print(f"DJANGO_DB: Processando mensagem: {message_data}")
+
+        team_id_str = message_data.get("team_id")
+        request_type_str = message_data.get("request_type")
+        status_str = message_data.get("status")
+        competition_id_str = message_data.get("competition_id")
+
+        if not team_id_str:
+            raise ValueError("'team_id' é obrigatório na mensagem")
+        if not request_type_str:
+            raise ValueError("'request_type' é obrigatório na mensagem")
+        if not status_str:
+            raise ValueError("'status' da solicitação é obrigatório na mensagem")
+        if not competition_id_str:
+            raise ValueError("'competition_id' da solicitação é obrigatório na mensagem")
+
+        try:
+            team_id_for_db = uuid.UUID(team_id_str)
+        except ValueError:
+            raise ValueError(f"team_id '{team_id_str}' não é um UUID válido")
+
+        try:
+            competition_id_for_db = uuid.UUID(competition_id_str)
+        except ValueError:
+            raise ValueError(f"competition_id '{competition_id_str}' não é um UUID válido")
+
+        print(
+            f"DJANGO_DB: Dados parseados: team_id={team_id_for_db}, request_type={request_type_str}, request_status={status_str}")
+
+        with transaction.atomic():
+            try:
+                competition_instance = Competition.objects.filter(id=competition_id_for_db).first()
+            except Competition.DoesNotExist:
+                raise ValueError(f"Competition com ID '{competition_id_for_db}' não encontrada.")
+
+            try:
+                competition_team_instance, created = CompetitionTeam.objects.get_or_create(
+                    team_id=team_id_for_db,
+                    competition=competition_instance,
+                )
+
+                if created:
+                    message = f"Equipe {team_id_for_db} associada à competição {competition_id_for_db} com sucesso."
+                    print(f"DJANGO_DB: {message}")
+                    return {"status": "success", "message": message,
+                            "competition_team_id": str(competition_team_instance.id)}
+                else:
+                    message = f"Equipe {team_id_for_db} já estava associada à competição {competition_id_for_db}."
+                    print(f"DJANGO_DB: {message}")
+                    return {"status": "already_exists", "message": message,
+                            "competition_team_id": str(competition_team_instance.id)}
+
+            except IntegrityError as ie:
+                print(f"DJANGO_DB: Erro de integridade ao criar CompetitionTeam: {ie}")
+                existing_entry = CompetitionTeam.objects.filter(team_id=team_id_for_db,
+                                                                competition=competition_instance).first()
+                if existing_entry:
+                    return {"status": "already_exists",
+                            "message": f"Equipe {team_id_for_db} já associada (detectado por IntegrityError).",
+                            "competition_team_id": str(existing_entry.id)}
+                raise
+
+    except ValueError as ve:
+        print(f"DJANGO_DB: Erro de dados ou validação: {ve}")
+        raise
+    except Exception as e:
+        print(f"DJANGO_DB: Erro inesperado no banco: {e}")
+        raise
+    finally:
+        close_old_connections()
