@@ -49,6 +49,9 @@ REQUESTS_EVENTS_EXCHANGE = "requests_events_exchange"
 COMPETITION_TEAM_CREATION_QUEUE = "competitions_service.queue.team_creation"
 ROUTING_KEY_COMPETITION_TEAM_CREATION = "team.creation.update"
 
+COMPETITION_TEAM_DELETION_QUEUE = "competitions_service.queue.team_deletion"
+ROUTING_KEY_COMPETITION_TEAM_DELETION = "team.remove.update"
+
 
 async def on_message(message: aio_pika.IncomingMessage) -> None:
     async with message.process():
@@ -102,6 +105,20 @@ async def main_consumer():
                 print(f"INFO: [requests_service] Consumidor: Conectado! '{COMPETITION_TEAM_CREATION_QUEUE}' esperando por mensagens com routing key '{ROUTING_KEY_COMPETITION_TEAM_CREATION}'. Para sair pressione CTRL+C")
 
                 await team_creation_queue.consume(on_message)
+
+
+                # Fila para deletar equipe em competition
+                team_deletion_queue = await channel.declare_queue(
+                    COMPETITION_TEAM_DELETION_QUEUE,
+                    durable=True
+                )
+
+                await team_deletion_queue.bind(exchange, routing_key=ROUTING_KEY_COMPETITION_TEAM_DELETION)
+
+                print(
+                    f"INFO: [requests_service] Consumidor: Conectado! '{COMPETITION_TEAM_DELETION_QUEUE}' esperando por mensagens com routing key '{ROUTING_KEY_COMPETITION_TEAM_DELETION}'. Para sair pressione CTRL+C")
+
+                await team_deletion_queue.consume(on_message)
 
 
                 await asyncio.Future()

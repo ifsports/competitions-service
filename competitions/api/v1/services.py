@@ -241,32 +241,55 @@ def update_team_from_request_in_db_django(message_data: dict) -> dict:
             except Competition.DoesNotExist:
                 raise ValueError(f"Competition com ID '{competition_id_for_db}' não encontrada.")
 
-            try:
-                competition_team_instance, created = CompetitionTeam.objects.get_or_create(
-                    team_id=team_id_for_db,
-                    competition=competition_instance,
-                )
+            if request_type_str == "approve_team":
+                try:
+                    competition_team_instance, created = CompetitionTeam.objects.get_or_create(
+                        team_id=team_id_for_db,
+                        competition=competition_instance,
+                    )
 
-                if created:
-                    message = f"Equipe {team_id_for_db} associada à competição {competition_id_for_db} com sucesso."
-                    print(f"DJANGO_DB: {message}")
-                    return {"status": "success", "message": message,
-                            "competition_team_id": str(competition_team_instance.team_id)}
-                else:
-                    message = f"Equipe {team_id_for_db} já estava associada à competição {competition_id_for_db}."
-                    print(f"DJANGO_DB: {message}")
-                    return {"status": "already_exists", "message": message,
-                            "competition_team_id": str(competition_team_instance.team_id)}
+                    if created:
+                        message = f"Equipe {team_id_for_db} associada à competição {competition_id_for_db} com sucesso."
+                        print(f"DJANGO_DB: {message}")
+                        return {"status": "success", "message": message,
+                                "competition_team_id": str(competition_team_instance.team_id)}
+                    else:
+                        message = f"Equipe {team_id_for_db} já estava associada à competição {competition_id_for_db}."
+                        print(f"DJANGO_DB: {message}")
+                        return {"status": "already_exists", "message": message,
+                                "competition_team_id": str(competition_team_instance.team_id)}
 
-            except IntegrityError as ie:
-                print(f"DJANGO_DB: Erro de integridade ao criar CompetitionTeam: {ie}")
-                existing_entry = CompetitionTeam.objects.filter(team_id=team_id_for_db,
-                                                                competition=competition_instance).first()
-                if existing_entry:
-                    return {"status": "already_exists",
-                            "message": f"Equipe {team_id_for_db} já associada (detectado por IntegrityError).",
-                            "competition_team_id": str(existing_entry.team_id)}
-                raise
+                except IntegrityError as ie:
+                    print(f"DJANGO_DB: Erro de integridade ao criar CompetitionTeam: {ie}")
+                    existing_entry = CompetitionTeam.objects.filter(team_id=team_id_for_db,
+                                                                    competition=competition_instance).first()
+                    if existing_entry:
+                        return {"status": "already_exists",
+                                "message": f"Equipe {team_id_for_db} já associada (detectado por IntegrityError).",
+                                "competition_team_id": str(existing_entry.team_id)}
+                    raise
+
+            elif request_type_str == "delete_team":
+                try:
+                    competition_team_instance = CompetitionTeam.objects.filter(
+                        team_id=team_id_for_db,
+                        competition=competition_instance,
+                    ).first()
+
+                    if competition_team_instance:
+                        competition_team_instance.delete()
+                        message = f"Equipe {team_id_for_db} removida da competição {competition_id_for_db} com sucesso."
+                        print(f"DJANGO_DB: {message}")
+                        return {"status": "success", "message": message}
+                    else:
+                        message = f"Equipe {team_id_for_db} não estava associada à competição {competition_id_for_db}."
+                        print(f"DJANGO_DB: {message}")
+                        return {"status": "not_found", "message": message}
+
+                except Exception as e:
+                    print(f"DJANGO_DB: Erro ao deletar CompetitionTeam: {e}")
+                    return {"status": "error", "message": f"Erro ao remover equipe: {str(e)}"}
+
 
     except ValueError as ve:
         print(f"DJANGO_DB: Erro de dados ou validação: {ve}")
