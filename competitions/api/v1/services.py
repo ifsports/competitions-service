@@ -251,12 +251,12 @@ def update_team_from_request_in_db_django(message_data: dict) -> dict:
                     message = f"Equipe {team_id_for_db} associada à competição {competition_id_for_db} com sucesso."
                     print(f"DJANGO_DB: {message}")
                     return {"status": "success", "message": message,
-                            "competition_team_id": str(competition_team_instance.id)}
+                            "competition_team_id": str(competition_team_instance.team_id)}
                 else:
                     message = f"Equipe {team_id_for_db} já estava associada à competição {competition_id_for_db}."
                     print(f"DJANGO_DB: {message}")
                     return {"status": "already_exists", "message": message,
-                            "competition_team_id": str(competition_team_instance.id)}
+                            "competition_team_id": str(competition_team_instance.team_id)}
 
             except IntegrityError as ie:
                 print(f"DJANGO_DB: Erro de integridade ao criar CompetitionTeam: {ie}")
@@ -265,7 +265,7 @@ def update_team_from_request_in_db_django(message_data: dict) -> dict:
                 if existing_entry:
                     return {"status": "already_exists",
                             "message": f"Equipe {team_id_for_db} já associada (detectado por IntegrityError).",
-                            "competition_team_id": str(existing_entry.id)}
+                            "competition_team_id": str(existing_entry.team_id)}
                 raise
 
     except ValueError as ve:
