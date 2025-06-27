@@ -14,7 +14,7 @@ except Exception as e:
 import aio_pika
 import json
 
-from competitions.api.v1.services import update_team_from_request_in_db_django
+from competitions.api.v1.services import update_team_from_request_in_db_django, handle_match_finished_message
 
 RABBITMQ_USER_DEFAULT = "guest"
 RABBITMQ_PASSWORD_DEFAULT = "guest"
@@ -45,6 +45,7 @@ else:
 
 
 REQUESTS_EVENTS_EXCHANGE = "requests_events_exchange"
+MATCH_COMMENTS_EVENTS_EXCHANGE = "match_comments_events_exchange"
 
 COMPETITION_TEAM_CREATION_QUEUE = "competitions_service.queue.team_creation"
 ROUTING_KEY_COMPETITION_TEAM_CREATION = "team.creation.update"
@@ -52,21 +53,37 @@ ROUTING_KEY_COMPETITION_TEAM_CREATION = "team.creation.update"
 COMPETITION_TEAM_DELETION_QUEUE = "competitions_service.queue.team_deletion"
 ROUTING_KEY_COMPETITION_TEAM_DELETION = "team.remove.update"
 
+MATCH_COMMENTS_MATCH_FINISHED_QUEUE = "match_comments_service.queue.match_finished"
+ROUTING_KEY_MATCH_COMMENTS_MATCH_FINISHED = "match.finished.update"
+
 
 async def on_message(message: aio_pika.IncomingMessage) -> None:
     async with message.process():
         try:
             data = json.loads(message.body.decode())
-            print(f" [requests_service] Received message: {data}")
-            print(f" [requests_service] Routing Key: {message.routing_key}")
+            routing_key = message.routing_key
+            print(f" Received message: {data}")
+            print(f" Routing Key: {routing_key}")
 
-            if hasattr(asyncio, 'to_thread'):
-                db_result = await asyncio.to_thread(update_team_from_request_in_db_django, data)
+            if routing_key == ROUTING_KEY_COMPETITION_TEAM_CREATION or routing_key == ROUTING_KEY_COMPETITION_TEAM_DELETION:
+                if hasattr(asyncio, 'to_thread'):
+                    db_result = await asyncio.to_thread(update_team_from_request_in_db_django, data)
+                else:
+                    loop = asyncio.get_event_loop()
+                    db_result = await loop.run_in_executor(None, update_team_from_request_in_db_django, data)
+
+                print(f" [requests_service] Resultado do processamento do DB (Team): {db_result}")
+
+            elif routing_key == ROUTING_KEY_MATCH_COMMENTS_MATCH_FINISHED:
+                if hasattr(asyncio, 'to_thread'):
+                    db_result = await asyncio.to_thread(handle_match_finished_message, data)
+                    print(f" [match_comments_service] Resultado do processamento do DB (Match Finished): {db_result}")
+                else:
+                    loop = asyncio.get_event_loop()
+                    db_result = await loop.run_in_executor(None, handle_match_finished_message, data)
+
             else:
-                loop = asyncio.get_event_loop()
-                db_result = await loop.run_in_executor(None, update_team_from_request_in_db_django, data)
-
-            print(f" [requests_service] Resultado do processamento do DB: {db_result}")
+                print(f" [requests_service] Routing key inesperada: {routing_key}. Ignorando...")
 
         except json.JSONDecodeError as e:
             print(f" [requests_service] Erro ao decodificar JSON: {e}. Mensagem será rejeitada.")
@@ -90,6 +107,12 @@ async def main_consumer():
 
                 exchange = await channel.declare_exchange(
                     REQUESTS_EVENTS_EXCHANGE,
+                    aio_pika.ExchangeType.DIRECT,
+                    durable=True
+                )
+
+                match_comments_exchange = await channel.declare_exchange(
+                    MATCH_COMMENTS_EVENTS_EXCHANGE,
                     aio_pika.ExchangeType.DIRECT,
                     durable=True
                 )
@@ -119,6 +142,21 @@ async def main_consumer():
                     f"INFO: [requests_service] Consumidor: Conectado! '{COMPETITION_TEAM_DELETION_QUEUE}' esperando por mensagens com routing key '{ROUTING_KEY_COMPETITION_TEAM_DELETION}'. Para sair pressione CTRL+C")
 
                 await team_deletion_queue.consume(on_message)
+
+
+                # Fila para alterar os dados de uma partida
+                match_finished_queue = await channel.declare_queue(
+                    MATCH_COMMENTS_MATCH_FINISHED_QUEUE,
+                    durable=True
+                )
+
+                await match_finished_queue.bind(match_comments_exchange, routing_key=ROUTING_KEY_MATCH_COMMENTS_MATCH_FINISHED)
+
+                print(
+                    f"INFO: [match_comments_service] Consumidor: Conectado! '{MATCH_COMMENTS_MATCH_FINISHED_QUEUE}' esperando por mensagens com routing key '{ROUTING_KEY_MATCH_COMMENTS_MATCH_FINISHED}'. Para sair pressione CTRL+C")
+
+                await match_finished_queue.consume(on_message)
+
 
 
                 await asyncio.Future()

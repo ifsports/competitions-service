@@ -299,3 +299,69 @@ def update_team_from_request_in_db_django(message_data: dict) -> dict:
         raise
     finally:
         close_old_connections()
+
+
+def handle_match_finished_message(message_data: dict) -> dict:
+    """
+    Processa a mensagem e atualiza/cria entidades no banco de dados usando Django ORM.
+    """
+    close_old_connections()
+
+    try:
+        print(f"DJANGO_DB: Processando mensagem: {message_data}")
+
+        match_id_str = message_data.get("match_id")
+        team_home_str = message_data.get("team_home_id")
+        team_away_str = message_data.get("team_away_id")
+        score_home = message_data.get("score_home")
+        score_away = message_data.get("score_away")
+        status_str = message_data.get("status")
+
+        if not match_id_str:
+            raise ValueError("'match_id' é obrigatório na mensagem")
+        if score_home is None:
+            raise ValueError("'score_home' da solicitação é obrigatório na mensagem")
+        if score_away is None:
+            raise ValueError("'score_away' da solicitação é obrigatório na mensagem")
+
+        try:
+            match_id_for_db = uuid.UUID(match_id_str)
+        except ValueError:
+            raise ValueError(f"match_id '{match_id_str}' não é um UUID válido")
+
+        try:
+            team_home_for_db = uuid.UUID(team_home_str)
+        except ValueError:
+            raise ValueError(f"team_id '{team_home_str}' não é um UUID válido")
+
+        try:
+            team_away_for_db = uuid.UUID(team_away_str)
+        except ValueError:
+            raise ValueError(f"team_id '{team_away_str}' não é um UUID válido")
+
+        with transaction.atomic():
+            if status_str == "finished":
+                if score_home > score_away:
+                    match_winner = team_home_for_db
+                elif score_home < score_away:
+                    match_winner = team_away_for_db
+                else:
+                    match_winner = None
+
+                updated = Match.objects.filter(id=match_id_for_db).update(
+                    score_home=score_home,
+                    score_away=score_away,
+                    status=status_str,
+                    winner=match_winner
+                )
+                if updated == 0:
+                    raise ValueError(f"Match com ID '{match_id_for_db}' não encontrada.")
+
+    except ValueError as ve:
+        print(f"DJANGO_DB: Erro de dados ou validação: {ve}")
+        raise
+    except Exception as e:
+        print(f"DJANGO_DB: Erro inesperado no banco: {e}")
+        raise
+    finally:
+        close_old_connections()
