@@ -95,6 +95,7 @@ def update_league_standings(competition: Competition):
         ).order_by(
             '-points',  
             '-score_difference',
+            '-score_pro',
         )
     )
 
