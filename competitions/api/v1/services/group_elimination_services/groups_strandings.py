@@ -4,10 +4,7 @@ def get_group_standings(group: Group):
     """
     Retorna a classificação dos times em uma competição do tipo 'league'.
     """
-    classifications = Classification.objects.filter(group=group).order_by(
-            '-points',  
-            '-score_difference',
-    )
+    classifications = Classification.objects.filter(group=group).order_by('position')
 
     return classifications
 

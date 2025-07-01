@@ -3,6 +3,7 @@ from itertools import combinations
 import random
 from competitions.models import Competition, Round, CompetitionTeam, Match, Classification, Group
 from competitions.api.v1.messaging.publishers import publish_match_created
+from competitions.api.v1.services.group_elimination_services.generate_eliminations import generate_elimination_stage
 
 from math import ceil
 
@@ -25,7 +26,6 @@ def generate_groups_elimination_competition(competition: Competition):
 
     # 3. Gera as partidas da fase eliminatória
     generate_elimination_stage(competition)
-
 
 def create_groups_and_classification(competition: Competition, teams: list):
     """Cria os grupos, distribui os times e inicializa a classificação para cada time."""
@@ -51,7 +51,6 @@ def create_groups_and_classification(competition: Competition, teams: list):
             except StopIteration:
                 break
     return groups
-
 
 def generate_group_matches(competition: Competition, group: Group):
     """Gera as partidas para um único grupo."""
@@ -85,6 +84,3 @@ def generate_group_matches(competition: Competition, group: Group):
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             loop.run_until_complete(publish_match_created(match_data))
-
-def generate_elimination_stage(competition: Competition):
-    pass
