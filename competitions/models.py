@@ -128,6 +128,11 @@ class Match(models.Model):
     scheduled_datetime = models.DateTimeField(null=True, blank=True)
     team_home = models.ForeignKey(CompetitionTeam, related_name='home_team', on_delete=models.CASCADE)
     team_away = models.ForeignKey(CompetitionTeam, related_name='away_team', on_delete=models.CASCADE)
+
+    home_feeder_match = models.ForeignKey('self', related_name='feeds_home_team', on_delete=models.SET_NULL, null=True, blank=True)
+    away_feeder_match = models.ForeignKey('self', related_name='feeds_away_team', on_delete=models.SET_NULL, null=True, blank=True)
+
+
     score_home = models.IntegerField(null=True, blank=True)
     score_away = models.IntegerField(null=True, blank=True)
     winner = models.ForeignKey(CompetitionTeam, null=True, blank=True, on_delete=models.SET_NULL)
