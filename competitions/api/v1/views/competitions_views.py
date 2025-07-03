@@ -9,7 +9,9 @@ from competitions.models import (
     Competition, Campus, CompetitionTeam, Round, Match
 )
 
-from competitions.api.v1.services import get_competition_standings, generate_league_competition, finish_match
+from competitions.api.v1.league_services import get_competition_standings, generate_league_competition, finish_match
+from competitions.api.v1.services.group_elimination_services.generate_groups_elimination import generate_groups_elimination_competition
+
 
 from competitions.api.v1.serializers import (
     CompetitionSerializer, CompetitionTeamSerializer, RoundSerializer, RoundMatchesSerializer, MatchSerializer,
@@ -166,7 +168,6 @@ class CompetitionTeamsAPIView(APIView):
                 "data": serializer.data,
             }, status=status.HTTP_200_OK)
 
-
 class GenerateCompetitionsAPIView(APIView):
     permission_classes = [AllowAny]
 
@@ -184,7 +185,13 @@ class GenerateCompetitionsAPIView(APIView):
             except ValueError as e:
                 return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         elif competition.system == 'groups_elimination':
-            pass
+            try:
+                generate_groups_elimination_competition(competition)
+                return Response({"message": "Groups competition generated successfully."}, status=status.HTTP_201_CREATED)
+            except ValueError as e:
+                return Response(
+                    {"error":  str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
         elif competition.system == 'elimination':
             pass
 
