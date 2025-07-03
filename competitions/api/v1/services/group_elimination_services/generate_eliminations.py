@@ -2,7 +2,7 @@ from math import log2, ceil
 from django.db.models import Q
 
 # Importe os seus modelos
-from .models import Competition, Group, Round, Match, Classification
+from competitions.models import Competition, Group, Round, Match, Classification
 
 def generate_elimination_stage(competition: Competition):
     """
@@ -68,7 +68,7 @@ def assign_teams_to_knockout_stage(competition: Competition):
     clashes = create_first_round_clashes(competition)
     if not clashes: return
 
-    round_names = get_elimination_round_names(len(clashes) * 2)
+    round_names = get_elimination_round_names(len(clashes))
     first_round_matches = Match.objects.filter(
         competition=competition,
         round__name=round_names[0]
@@ -147,13 +147,26 @@ def create_first_round_clashes(competition: Competition) -> list[tuple[str, str]
 
 def get_elimination_round_names(num_teams: int) -> list:
     """Retorna uma lista com os nomes das fases eliminatórias."""
-    if num_teams < 2: return []
+    if num_teams < 2:
+        return []
+        
     num_rounds = int(log2(num_teams))
     names = []
-    round_name_map = {1: "Final", 2: "Semifinais", 4: "Quartas de Final", 8: "Oitavas de Final", 16: "16-avos de Final"}
+    
+    round_name_map = {
+        1: "Final", 
+        2: "Semifinais", 
+        4: "Quartas de Final", 
+        8: "Oitavas de Final", 
+        16: "16-avos de Final"
+    }
+
     for i in range(num_rounds):
-        teams_in_stage = 2**(num_rounds - i)
-        names.append(round_name_map.get(teams_in_stage, f'Fase de {teams_in_stage}'))
+        num_matches_in_stage = 2**(num_rounds - 1 - i)
+        
+        round_name = round_name_map.get(num_matches_in_stage, f'Fase de {num_matches_in_stage * 2}')
+        names.append(round_name)
+        
     return names
 
 def is_power_of_two(n: int) -> bool:

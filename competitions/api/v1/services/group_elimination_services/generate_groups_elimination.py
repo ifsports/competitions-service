@@ -3,7 +3,7 @@ from itertools import combinations
 import random
 from competitions.models import Competition, Round, CompetitionTeam, Match, Classification, Group
 from competitions.api.v1.messaging.publishers import publish_match_created
-from competitions.api.v1.services.group_elimination_services.generate_eliminations import generate_elimination_stage
+from competitions.api.v1.services.group_elimination_services.generate_eliminations import generate_elimination_stage, is_power_of_two
 
 from math import ceil
 
@@ -12,11 +12,15 @@ def generate_groups_elimination_competition(competition: Competition):
     Gera uma competição completa no formato 'Fase de Grupos + Eliminatórias'.
     """
     teams = list(CompetitionTeam.objects.filter(competition=competition))
+
     random.shuffle(teams)
 
     if not teams or not competition.teams_per_group or competition.teams_per_group <= 1:
         raise ValueError("A competição precisa de times e a configuração 'times por grupo' deve ser maior que 1.")
 
+    if competition.status == 'in-progress' or competition.status == 'finished':
+        raise ValueError('A competição já foi iniciada ou está finalizada.')
+    
     # 1. Cria os grupos e as entradas na tabela de classificação
     groups = create_groups_and_classification(competition, teams)
 
