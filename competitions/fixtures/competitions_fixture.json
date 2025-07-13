@@ -104,5 +104,109 @@
     "model": "competitions.competitionteam",
     "pk": "40000000-0000-0000-0000-000000000015",
     "fields": { "competition": "30000000-0000-0000-0000-000000000003" }
+  },
+  {
+    "model": "competitions.campus",
+    "pk": "a1b2c3d4-0001-4001-8001-000000000001",
+    "fields": {
+      "code": "Campus Teste"
+    }
+  },
+  {
+    "model": "competitions.modality",
+    "pk": "a1b2c3d4-0002-4002-8002-000000000001",
+    "fields": {
+      "name": "Futebol de Teste",
+      "campus": "a1b2c3d4-0001-4001-8001-000000000001"
+    }
+  },
+  {
+    "model": "competitions.competition",
+    "pk": "a1b2c3d4-0003-4003-8003-000000000001",
+    "fields": {
+      "name": "Copa dos Campeões",
+      "modality": "a1b2c3d4-0002-4002-8002-000000000001",
+      "status": "not-started",
+      "start_date": "2025-08-01",
+      "end_date": "2025-08-15",
+      "system": "elimination"
+    }
+  },
+  {
+    "model": "competitions.competitionteam",
+    "pk": "a1b2c3d4-0004-4004-8004-000000000001",
+    "fields": {
+      "competition": "a1b2c3d4-0003-4003-8003-000000000001"
+    }
+  },
+  {
+    "model": "competitions.competitionteam",
+    "pk": "a1b2c3d4-0004-4004-8004-000000000002",
+    "fields": {
+      "competition": "a1b2c3d4-0003-4003-8003-000000000001"
+    }
+  },
+  {
+    "model": "competitions.competitionteam",
+    "pk": "a1b2c3d4-0004-4004-8004-000000000003",
+    "fields": {
+      "competition": "a1b2c3d4-0003-4003-8003-000000000001"
+    }
+  },
+  {
+    "model": "competitions.competitionteam",
+    "pk": "a1b2c3d4-0004-4004-8004-000000000004",
+    "fields": {
+      "competition": "a1b2c3d4-0003-4003-8003-000000000001"
+    }
+  },
+  {
+    "model": "competitions.competitionteam",
+    "pk": "a1b2c3d4-0004-4004-8004-000000000005",
+    "fields": {
+      "competition": "a1b2c3d4-0003-4003-8003-000000000001"
+    }
+  },
+  {
+    "model": "competitions.competitionteam",
+    "pk": "a1b2c3d4-0004-4004-8004-000000000006",
+    "fields": {
+      "competition": "a1b2c3d4-0003-4003-8003-000000000001"
+    }
+  },
+  {
+    "model": "competitions.competitionteam",
+    "pk": "a1b2c3d4-0004-4004-8004-000000000007",
+    "fields": {
+      "competition": "a1b2c3d4-0003-4003-8003-000000000001"
+    }
+  },
+  {
+    "model": "competitions.competitionteam",
+    "pk": "a1b2c3d4-0004-4004-8004-000000000008",
+    "fields": {
+      "competition": "a1b2c3d4-0003-4003-8003-000000000001"
+    }
+  },
+  {
+    "model": "competitions.competitionteam",
+    "pk": "a1b2c3d4-0004-4004-8004-000000000009",
+    "fields": {
+      "competition": "a1b2c3d4-0003-4003-8003-000000000001"
+    }
+  },
+  {
+    "model": "competitions.competitionteam",
+    "pk": "a1b2c3d4-0004-4004-8004-000000000010",
+    "fields": {
+      "competition": "a1b2c3d4-0003-4003-8003-000000000001"
+    }
+  },
+  {
+    "model": "competitions.competitionteam",
+    "pk": "a1b2c3d4-0004-4004-8004-000000000011",
+    "fields": {
+      "competition": "a1b2c3d4-0003-4003-8003-000000000001"
+    }
   }
 ]

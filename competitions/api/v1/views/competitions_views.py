@@ -11,6 +11,8 @@ from competitions.models import (
 
 from competitions.api.v1.league_services import get_competition_standings, generate_league_competition, finish_match
 from competitions.api.v1.services.group_elimination_services.generate_groups_elimination import generate_groups_elimination_competition
+from competitions.api.v1.services.elimination_services.genarate_eliminations import generate_elimination_only_competition
+
 
 
 from competitions.api.v1.serializers import (
@@ -193,7 +195,11 @@ class GenerateCompetitionsAPIView(APIView):
                     {"error":  str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
                 )
         elif competition.system == 'elimination':
-            pass
+            try:
+                generate_elimination_only_competition(competition)
+                return Response({'message': 'Elimination competition generated succesfully.'}, status=status.HTTP_201_CREATED)
+            except:
+                return Response({'error': str(e)})
 
 class CompetitionTeamRetrieveUpdateDestroyAPIView(APIView):
     permission_classes = [AllowAny]
