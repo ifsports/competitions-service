@@ -12,6 +12,7 @@ from competitions.models import (
 from competitions.api.v1.league_services import get_competition_standings, generate_league_competition, finish_match
 from competitions.api.v1.services.group_elimination_services.generate_groups_elimination import generate_groups_elimination_competition
 from competitions.api.v1.services.elimination_services.genarate_eliminations import generate_elimination_only_competition
+from competitions.api.v1.services.elimination_services.genarate_eliminations import assign_teams_to_knockout_stage
 
 
 
@@ -200,6 +201,28 @@ class GenerateCompetitionsAPIView(APIView):
                 return Response({'message': 'Elimination competition generated succesfully.'}, status=status.HTTP_201_CREATED)
             except:
                 return Response({'error': str(e)})
+
+class EndGroupStageAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request, competition_id):
+        """
+        Finaliza a fase de grupos de uma competição específica.
+        """
+        
+        competition = get_object_or_404(Competition, id=competition_id)
+
+        if competition.system == 'groups_elimination':
+            try:  
+                assign_teams_to_knockout_stage(competition)
+                return Response({"message": "Teams assigned to knockout stage successfully."}, status=status.HTTP_200_OK)
+            except ValueError as e:
+                return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(
+                {"error": "This endpoint is only for competitions with 'groups_elimination' system."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
 class CompetitionTeamRetrieveUpdateDestroyAPIView(APIView):
     permission_classes = [AllowAny]
