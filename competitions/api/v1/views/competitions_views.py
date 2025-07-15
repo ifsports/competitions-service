@@ -371,6 +371,33 @@ class RoundMatchesAPIView(APIView):
         serializer = MatchSerializer(page, many=True)
         return paginator.get_paginated_response(serializer.data)
 
+class MatchesAPIView(APIView):
+    """
+    Retorna todas as partidas de todas as competições de um campus específico.
+    """
+    permission_classes = [AllowAny]
+
+    def get(self, request, campus_code):
+        """
+        Retorna todas as partidas de todas as competições de um campus específico.
+        """
+        campus = get_object_or_404(Campus, code=campus_code)
+        competitions = Competition.objects.filter(modality__campus=campus)
+
+        if not competitions.exists():
+            return Response({"message": "No competitions found for this campus."}, status=status.HTTP_404_NOT_FOUND)
+
+        matches = Match.objects.filter(competition__in=competitions).all()
+
+        if not matches.exists():
+            return Response({"message": "No matches found for this campus."}, status=status.HTTP_404_NOT_FOUND)
+
+        paginator = PageNumberPagination()
+        page = paginator.paginate_queryset(matches, request, view=self)
+
+        serializer = MatchSerializer(page, many=True)
+        return paginator.get_paginated_response(serializer.data)
+
 class MatchRetrieveUpdateAPIView(APIView):
     permission_classes = [AllowAny]
 
