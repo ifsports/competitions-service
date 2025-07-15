@@ -79,10 +79,7 @@ def get_league_standings(competition: Competition):
     """
     Retorna a classificação dos times em uma competição do tipo 'league'.
     """
-    classifications = Classification.objects.filter(competition=competition).order_by(
-            '-points',  
-            '-score_difference',
-    )
+    classifications = Classification.objects.filter(competition=competition).order_by('position')
 
     return classifications
 
@@ -95,6 +92,7 @@ def update_league_standings(competition: Competition):
         ).order_by(
             '-points',  
             '-score_difference',
+            '-score_pro',
         )
     )
 

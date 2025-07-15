@@ -4,12 +4,16 @@ from rest_framework import status
 from rest_framework.permissions import AllowAny
 from django.shortcuts import get_object_or_404
 from django.db.models import Prefetch
+from rest_framework.pagination import PageNumberPagination
 
 from competitions.models import (
     Competition, Campus, CompetitionTeam, Round, Match
 )
 
-from competitions.api.v1.services import get_competition_standings, generate_league_competition, finish_match
+from competitions.api.v1.services.league_services.league_services import get_competition_standings, generate_league_competition, finish_match
+from competitions.api.v1.services.group_elimination_services.generate_groups_elimination import generate_groups_elimination_competition
+from competitions.api.v1.services.elimination_services.genarate_eliminations import generate_elimination_only_competition
+from competitions.api.v1.services.group_elimination_services.generate_eliminations import assign_teams_to_knockout_stage
 
 from competitions.api.v1.serializers import (
     CompetitionSerializer, CompetitionTeamSerializer, RoundSerializer, RoundMatchesSerializer, MatchSerializer,
@@ -166,7 +170,6 @@ class CompetitionTeamsAPIView(APIView):
                 "data": serializer.data,
             }, status=status.HTTP_200_OK)
 
-
 class GenerateCompetitionsAPIView(APIView):
     permission_classes = [AllowAny]
 
@@ -184,9 +187,41 @@ class GenerateCompetitionsAPIView(APIView):
             except ValueError as e:
                 return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         elif competition.system == 'groups_elimination':
-            pass
+            try:
+                generate_groups_elimination_competition(competition)
+                return Response({"message": "Groups competition generated successfully."}, status=status.HTTP_201_CREATED)
+            except ValueError as e:
+                return Response(
+                    {"error":  str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
         elif competition.system == 'elimination':
-            pass
+            try:
+                generate_elimination_only_competition(competition)
+                return Response({'message': 'Elimination competition generated succesfully.'}, status=status.HTTP_201_CREATED)
+            except:
+                return Response({'error': str(e)})
+
+class EndGroupStageAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request, competition_id):
+        """
+        Finaliza a fase de grupos de uma competição específica.
+        """
+        
+        competition = get_object_or_404(Competition, id=competition_id)
+
+        if competition.system == 'groups_elimination':
+            try:  
+                assign_teams_to_knockout_stage(competition)
+                return Response({"message": "Teams assigned to knockout stage successfully."}, status=status.HTTP_200_OK)
+            except ValueError as e:
+                return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(
+                {"error": "This endpoint is only for competitions with 'groups_elimination' system."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
 class CompetitionTeamRetrieveUpdateDestroyAPIView(APIView):
     permission_classes = [AllowAny]
@@ -240,8 +275,11 @@ class CompetitionRoundsAPIView(APIView):
         if not rounds.exists():
             return Response({"message": "No rounds found for this competition."}, status=status.HTTP_404_NOT_FOUND)
 
-        serializer = RoundSerializer(rounds, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        paginator = PageNumberPagination()
+        page = paginator.paginate_queryset(rounds, request, view=self)
+
+        serializer = RoundSerializer(page, many=True)
+        return paginator.get_paginated_response(serializer.data)
     
 class CompetitionRoundMatchesAPIView(APIView):
     permission_classes = [AllowAny]
@@ -250,10 +288,9 @@ class CompetitionRoundMatchesAPIView(APIView):
         """
         Retorna todas as rodadas de uma competição específica.
         """
-
         competition = get_object_or_404(Competition, id=competition_id)
 
-        rounds = Round.objects.filter(
+        rounds_queryset = Round.objects.filter(
             match__competition=competition
         ).prefetch_related(
             Prefetch(
@@ -268,11 +305,19 @@ class CompetitionRoundMatchesAPIView(APIView):
             )
         ).distinct()
 
-        if not rounds.exists():
-            return Response({"message": "No rounds found for this competition."}, status=status.HTTP_404_NOT_FOUND)
+        paginator = PageNumberPagination()
+        
+        page = paginator.paginate_queryset(rounds_queryset, request, view=self)
 
-        serializer = RoundMatchesSerializer(rounds, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        if not page:
+            return Response(
+                {"detail": "Nenhuma rodada encontrada para esta competição."}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        serializer = RoundMatchesSerializer(page, many=True)
+        
+        return paginator.get_paginated_response(serializer.data)
     
 class CompetitionMatchesAPIView(APIView):
     permission_classes = [AllowAny]
@@ -283,13 +328,16 @@ class CompetitionMatchesAPIView(APIView):
         
         competition = get_object_or_404(Competition, id=competition_id)
 
-        matches = Match.objects.filter(competition=competition).all()
+        matches_queryset = Match.objects.filter(competition=competition).all()
 
-        if not matches.exists():
+        paginator = PageNumberPagination()
+        page = paginator.paginate_queryset(matches_queryset, request, view=self)
+
+        if not page:
             return Response({"message": "No matches found for this competition."}, status=status.HTTP_404_NOT_FOUND)
         
-        serializer = MatchSerializer(matches, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        serializer = MatchSerializer(page, many=True)
+        return paginator.get_paginated_response(serializer.data)
 
 class RoundMatchesAPIView(APIView):
     permission_classes = [AllowAny]
@@ -309,7 +357,7 @@ class RoundMatchesAPIView(APIView):
             ))).distinct().first()
         
 
-        if not round:
+        if not round.exists():
             return Response({"message": "Round not found for this competition."}, status=status.HTTP_404_NOT_FOUND)
 
         matches = round.match_set.all()
@@ -317,8 +365,38 @@ class RoundMatchesAPIView(APIView):
         if not matches.exists():
             return Response({"message": "No matches found for this round."}, status=status.HTTP_404_NOT_FOUND)
 
-        serializer = MatchSerializer(matches, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        paginator = PageNumberPagination()
+        page = paginator.paginate_queryset(matches, request, view=self)
+
+        serializer = MatchSerializer(page, many=True)
+        return paginator.get_paginated_response(serializer.data)
+
+class MatchesAPIView(APIView):
+    """
+    Retorna todas as partidas de todas as competições de um campus específico.
+    """
+    permission_classes = [AllowAny]
+
+    def get(self, request, campus_code):
+        """
+        Retorna todas as partidas de todas as competições de um campus específico.
+        """
+        campus = get_object_or_404(Campus, code=campus_code)
+        competitions = Competition.objects.filter(modality__campus=campus)
+
+        if not competitions.exists():
+            return Response({"message": "No competitions found for this campus."}, status=status.HTTP_404_NOT_FOUND)
+
+        matches = Match.objects.filter(competition__in=competitions).all()
+
+        if not matches.exists():
+            return Response({"message": "No matches found for this campus."}, status=status.HTTP_404_NOT_FOUND)
+
+        paginator = PageNumberPagination()
+        page = paginator.paginate_queryset(matches, request, view=self)
+
+        serializer = MatchSerializer(page, many=True)
+        return paginator.get_paginated_response(serializer.data)
 
 class MatchRetrieveUpdateAPIView(APIView):
     permission_classes = [AllowAny]

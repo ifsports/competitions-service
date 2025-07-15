@@ -126,8 +126,13 @@ class Match(models.Model):
     round_match_number = models.IntegerField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='not-started')
     scheduled_datetime = models.DateTimeField(null=True, blank=True)
-    team_home = models.ForeignKey(CompetitionTeam, related_name='home_team', on_delete=models.CASCADE)
-    team_away = models.ForeignKey(CompetitionTeam, related_name='away_team', on_delete=models.CASCADE)
+    team_home = models.ForeignKey(CompetitionTeam, related_name='home_team', on_delete=models.CASCADE, null=True, blank=True)
+    team_away = models.ForeignKey(CompetitionTeam, related_name='away_team', on_delete=models.CASCADE, null=True, blank=True)
+
+    home_feeder_match = models.ForeignKey('self', related_name='feeds_home_team', on_delete=models.SET_NULL, null=True, blank=True)
+    away_feeder_match = models.ForeignKey('self', related_name='feeds_away_team', on_delete=models.SET_NULL, null=True, blank=True)
+
+
     score_home = models.IntegerField(null=True, blank=True)
     score_away = models.IntegerField(null=True, blank=True)
     winner = models.ForeignKey(CompetitionTeam, null=True, blank=True, on_delete=models.SET_NULL)

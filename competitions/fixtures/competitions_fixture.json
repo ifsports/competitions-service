@@ -1,572 +1,212 @@
 [
   {
-    "model": "competitions.Campus",
+    "model": "competitions.campus",
     "pk": "10000000-0000-0000-0000-000000000001",
     "fields": {
-      "code": "PF"
+      "code": "IFSP-SPO"
     }
   },
   {
-    "model": "competitions.Campus",
-    "pk": "10000000-0000-0000-0000-000000000002",
+    "model": "competitions.modality",
+    "pk": "20000000-0000-0000-0000-000000000002",
     "fields": {
-      "code": "SM"
-    }
-  },
-  {
-    "model": "competitions.Campus",
-    "pk": "10000000-0000-0000-0000-000000000003",
-    "fields": {
-      "code": "NT"
-    }
-  },
-  {
-    "model": "competitions.Modality",
-    "pk": "20000000-0000-0000-0000-000000000001",
-    "fields": {
-      "name": "Futebol",
+      "name": "Futsal Masculino",
       "campus": "10000000-0000-0000-0000-000000000001"
     }
   },
   {
-    "model": "competitions.Modality",
-    "pk": "20000000-0000-0000-0000-000000000002",
-    "fields": {
-      "name": "Vôlei",
-      "campus": "10000000-0000-0000-0000-000000000002"
-    }
-  },
-  {
-    "model": "competitions.Modality",
-    "pk": "20000000-0000-0000-0000-000000000003",
-    "fields": {
-      "name": "Basquete",
-      "campus": "10000000-0000-0000-0000-000000000003"
-    }
-  },
-  {
-    "model": "competitions.Competition",
-    "pk": "30000000-0000-0000-0000-000000000001",
-    "fields": {
-      "name": "Liga de Futebol 2023",
-      "modality": "20000000-0000-0000-0000-000000000001",
-      "status": "not-started",
-      "start_date": "2023-10-01",
-      "end_date": "2023-12-15",
-      "system": "league",
-      "min_members_per_team": 5,
-      "teams_per_group": null,
-      "teams_qualified_per_group": null
-    }
-  },
-  {
-    "model": "competitions.Competition",
-    "pk": "30000000-0000-0000-0000-000000000002",
-    "fields": {
-      "name": "Torneio de Vôlei 2023",
-      "modality": "20000000-0000-0000-0000-000000000002",
-      "status": "not-started",
-      "start_date": "2023-10-05",
-      "end_date": "2023-11-30",
-      "system": "elimination",
-      "min_members_per_team": 6,
-      "teams_per_group": null,
-      "teams_qualified_per_group": null
-    }
-  },
-  {
-    "model": "competitions.Competition",
+    "model": "competitions.competition",
     "pk": "30000000-0000-0000-0000-000000000003",
     "fields": {
-      "name": "Copa de Basquete 2023",
-      "modality": "20000000-0000-0000-0000-000000000003",
+      "name": "Inter-Cursos de Futsal 2025",
+      "modality": "20000000-0000-0000-0000-000000000002",
       "status": "not-started",
-      "start_date": "2023-10-10",
-      "end_date": "2023-12-20",
+      "start_date": "2025-09-10",
+      "end_date": "2025-10-20",
       "system": "groups_elimination",
-      "min_members_per_team": 3,
+      "image": null,
+      "min_members_per_team": 5,
       "teams_per_group": 4,
       "teams_qualified_per_group": 2
     }
   },
   {
-    "model": "competitions.CompetitionTeam",
+    "model": "competitions.competitionteam",
     "pk": "40000000-0000-0000-0000-000000000001",
-    "fields": {
-      "competition": "30000000-0000-0000-0000-000000000001"
-    }
+    "fields": { "competition": "30000000-0000-0000-0000-000000000003" }
   },
   {
-    "model": "competitions.CompetitionTeam",
+    "model": "competitions.competitionteam",
     "pk": "40000000-0000-0000-0000-000000000002",
-    "fields": {
-      "competition": "30000000-0000-0000-0000-000000000001"
-    }
+    "fields": { "competition": "30000000-0000-0000-0000-000000000003" }
   },
   {
-    "model": "competitions.CompetitionTeam",
+    "model": "competitions.competitionteam",
     "pk": "40000000-0000-0000-0000-000000000003",
-    "fields": {
-      "competition": "30000000-0000-0000-0000-000000000001"
-    }
+    "fields": { "competition": "30000000-0000-0000-0000-000000000003" }
   },
   {
-    "model": "competitions.CompetitionTeam",
+    "model": "competitions.competitionteam",
     "pk": "40000000-0000-0000-0000-000000000004",
-    "fields": {
-      "competition": "30000000-0000-0000-0000-000000000001"
-    }
+    "fields": { "competition": "30000000-0000-0000-0000-000000000003" }
   },
   {
-    "model": "competitions.CompetitionTeam",
+    "model": "competitions.competitionteam",
     "pk": "40000000-0000-0000-0000-000000000005",
-    "fields": {
-      "competition": "30000000-0000-0000-0000-000000000001"
-    }
+    "fields": { "competition": "30000000-0000-0000-0000-000000000003" }
   },
   {
-    "model": "competitions.CompetitionTeam",
+    "model": "competitions.competitionteam",
     "pk": "40000000-0000-0000-0000-000000000006",
-    "fields": {
-      "competition": "30000000-0000-0000-0000-000000000001"
-    }
+    "fields": { "competition": "30000000-0000-0000-0000-000000000003" }
   },
   {
-    "model": "competitions.CompetitionTeam",
+    "model": "competitions.competitionteam",
     "pk": "40000000-0000-0000-0000-000000000007",
-    "fields": {
-      "competition": "30000000-0000-0000-0000-000000000001"
-    }
+    "fields": { "competition": "30000000-0000-0000-0000-000000000003" }
   },
   {
-    "model": "competitions.CompetitionTeam",
+    "model": "competitions.competitionteam",
     "pk": "40000000-0000-0000-0000-000000000008",
-    "fields": {
-      "competition": "30000000-0000-0000-0000-000000000002"
-    }
+    "fields": { "competition": "30000000-0000-0000-0000-000000000003" }
   },
   {
-    "model": "competitions.CompetitionTeam",
+    "model": "competitions.competitionteam",
     "pk": "40000000-0000-0000-0000-000000000009",
-    "fields": {
-      "competition": "30000000-0000-0000-0000-000000000002"
-    }
+    "fields": { "competition": "30000000-0000-0000-0000-000000000003" }
   },
   {
-    "model": "competitions.CompetitionTeam",
+    "model": "competitions.competitionteam",
     "pk": "40000000-0000-0000-0000-000000000010",
-    "fields": {
-      "competition": "30000000-0000-0000-0000-000000000002"
-    }
+    "fields": { "competition": "30000000-0000-0000-0000-000000000003" }
   },
   {
-    "model": "competitions.CompetitionTeam",
+    "model": "competitions.competitionteam",
     "pk": "40000000-0000-0000-0000-000000000011",
-    "fields": {
-      "competition": "30000000-0000-0000-0000-000000000002"
-    }
+    "fields": { "competition": "30000000-0000-0000-0000-000000000003" }
   },
   {
-    "model": "competitions.CompetitionTeam",
+    "model": "competitions.competitionteam",
     "pk": "40000000-0000-0000-0000-000000000012",
-    "fields": {
-      "competition": "30000000-0000-0000-0000-000000000002"
-    }
+    "fields": { "competition": "30000000-0000-0000-0000-000000000003" }
   },
   {
-    "model": "competitions.CompetitionTeam",
+    "model": "competitions.competitionteam",
     "pk": "40000000-0000-0000-0000-000000000013",
-    "fields": {
-      "competition": "30000000-0000-0000-0000-000000000002"
-    }
+    "fields": { "competition": "30000000-0000-0000-0000-000000000003" }
   },
   {
-    "model": "competitions.CompetitionTeam",
+    "model": "competitions.competitionteam",
     "pk": "40000000-0000-0000-0000-000000000014",
-    "fields": {
-      "competition": "30000000-0000-0000-0000-000000000003"
-    }
+    "fields": { "competition": "30000000-0000-0000-0000-000000000003" }
   },
   {
-    "model": "competitions.CompetitionTeam",
+    "model": "competitions.competitionteam",
     "pk": "40000000-0000-0000-0000-000000000015",
+    "fields": { "competition": "30000000-0000-0000-0000-000000000003" }
+  },
+  {
+    "model": "competitions.campus",
+    "pk": "a1b2c3d4-0001-4001-8001-000000000001",
     "fields": {
-      "competition": "30000000-0000-0000-0000-000000000003"
+      "code": "Campus Teste"
     }
   },
   {
-    "model": "competitions.CompetitionTeam",
-    "pk": "40000000-0000-0000-0000-000000000016",
+    "model": "competitions.modality",
+    "pk": "a1b2c3d4-0002-4002-8002-000000000001",
     "fields": {
-      "competition": "30000000-0000-0000-0000-000000000003"
+      "name": "Futebol de Teste",
+      "campus": "a1b2c3d4-0001-4001-8001-000000000001"
     }
   },
   {
-    "model": "competitions.CompetitionTeam",
-    "pk": "40000000-0000-0000-0000-000000000017",
+    "model": "competitions.competition",
+    "pk": "a1b2c3d4-0003-4003-8003-000000000001",
     "fields": {
-      "competition": "30000000-0000-0000-0000-000000000003"
+      "name": "Copa dos Campeões",
+      "modality": "a1b2c3d4-0002-4002-8002-000000000001",
+      "status": "not-started",
+      "start_date": "2025-08-01",
+      "end_date": "2025-08-15",
+      "system": "elimination"
     }
   },
   {
-    "model": "competitions.CompetitionTeam",
-    "pk": "40000000-0000-0000-0000-000000000018",
+    "model": "competitions.competitionteam",
+    "pk": "a1b2c3d4-0004-4004-8004-000000000001",
     "fields": {
-      "competition": "30000000-0000-0000-0000-000000000003"
+      "competition": "a1b2c3d4-0003-4003-8003-000000000001"
     }
   },
   {
-    "model": "competitions.CompetitionTeam",
-    "pk": "40000000-0000-0000-0000-000000000019",
+    "model": "competitions.competitionteam",
+    "pk": "a1b2c3d4-0004-4004-8004-000000000002",
     "fields": {
-      "competition": "30000000-0000-0000-0000-000000000003"
+      "competition": "a1b2c3d4-0003-4003-8003-000000000001"
     }
   },
   {
-    "model": "competitions.CompetitionTeam",
-    "pk": "40000000-0000-0000-0000-000000000020",
+    "model": "competitions.competitionteam",
+    "pk": "a1b2c3d4-0004-4004-8004-000000000003",
     "fields": {
-      "competition": "30000000-0000-0000-0000-000000000003"
+      "competition": "a1b2c3d4-0003-4003-8003-000000000001"
     }
   },
   {
-    "model": "competitions.Classification",
-    "pk": "50000000-0000-0000-0000-000000000001",
+    "model": "competitions.competitionteam",
+    "pk": "a1b2c3d4-0004-4004-8004-000000000004",
     "fields": {
-      "team": "40000000-0000-0000-0000-000000000001",
-      "competition": "30000000-0000-0000-0000-000000000001",
-      "position": 1,
-      "points": 0,
-      "games_played": 0,
-      "wins": 0,
-      "losses": 0,
-      "draws": 0,
-      "score_pro": 0,
-      "score_against": 0,
-      "score_difference": 0
+      "competition": "a1b2c3d4-0003-4003-8003-000000000001"
     }
   },
   {
-    "model": "competitions.Classification",
-    "pk": "50000000-0000-0000-0000-000000000002",
+    "model": "competitions.competitionteam",
+    "pk": "a1b2c3d4-0004-4004-8004-000000000005",
     "fields": {
-      "team": "40000000-0000-0000-0000-000000000002",
-      "competition": "30000000-0000-0000-0000-000000000001",
-      "position": 2,
-      "points": 0,
-      "games_played": 0,
-      "wins": 0,
-      "losses": 0,
-      "draws": 0,
-      "score_pro": 0,
-      "score_against": 0,
-      "score_difference": 0
+      "competition": "a1b2c3d4-0003-4003-8003-000000000001"
     }
   },
   {
-    "model": "competitions.Classification",
-    "pk": "50000000-0000-0000-0000-000000000003",
+    "model": "competitions.competitionteam",
+    "pk": "a1b2c3d4-0004-4004-8004-000000000006",
     "fields": {
-      "team": "40000000-0000-0000-0000-000000000003",
-      "competition": "30000000-0000-0000-0000-000000000001",
-      "position": 3,
-      "points": 0,
-      "games_played": 0,
-      "wins": 0,
-      "losses": 0,
-      "draws": 0,
-      "score_pro": 0,
-      "score_against": 0,
-      "score_difference": 0
+      "competition": "a1b2c3d4-0003-4003-8003-000000000001"
     }
   },
   {
-    "model": "competitions.Classification",
-    "pk": "50000000-0000-0000-0000-000000000004",
+    "model": "competitions.competitionteam",
+    "pk": "a1b2c3d4-0004-4004-8004-000000000007",
     "fields": {
-      "team": "40000000-0000-0000-0000-000000000004",
-      "competition": "30000000-0000-0000-0000-000000000001",
-      "position": 4,
-      "points": 0,
-      "games_played": 0,
-      "wins": 0,
-      "losses": 0,
-      "draws": 0,
-      "score_pro": 0,
-      "score_against": 0,
-      "score_difference": 0
+      "competition": "a1b2c3d4-0003-4003-8003-000000000001"
     }
   },
   {
-    "model": "competitions.Classification",
-    "pk": "50000000-0000-0000-0000-000000000005",
+    "model": "competitions.competitionteam",
+    "pk": "a1b2c3d4-0004-4004-8004-000000000008",
     "fields": {
-      "team": "40000000-0000-0000-0000-000000000005",
-      "competition": "30000000-0000-0000-0000-000000000001",
-      "position": 5,
-      "points": 0,
-      "games_played": 0,
-      "wins": 0,
-      "losses": 0,
-      "draws": 0,
-      "score_pro": 0,
-      "score_against": 0,
-      "score_difference": 0
+      "competition": "a1b2c3d4-0003-4003-8003-000000000001"
     }
   },
   {
-    "model": "competitions.Classification",
-    "pk": "50000000-0000-0000-0000-000000000006",
+    "model": "competitions.competitionteam",
+    "pk": "a1b2c3d4-0004-4004-8004-000000000009",
     "fields": {
-      "team": "40000000-0000-0000-0000-000000000006",
-      "competition": "30000000-0000-0000-0000-000000000001",
-      "position": 6,
-      "points": 0,
-      "games_played": 0,
-      "wins": 0,
-      "losses": 0,
-      "draws": 0,
-      "score_pro": 0,
-      "score_against": 0,
-      "score_difference": 0
+      "competition": "a1b2c3d4-0003-4003-8003-000000000001"
     }
   },
   {
-    "model": "competitions.Classification",
-    "pk": "50000000-0000-0000-0000-000000000007",
+    "model": "competitions.competitionteam",
+    "pk": "a1b2c3d4-0004-4004-8004-000000000010",
     "fields": {
-      "team": "40000000-0000-0000-0000-000000000007",
-      "competition": "30000000-0000-0000-0000-000000000001",
-      "position": 7,
-      "points": 0,
-      "games_played": 0,
-      "wins": 0,
-      "losses": 0,
-      "draws": 0,
-      "score_pro": 0,
-      "score_against": 0,
-      "score_difference": 0
+      "competition": "a1b2c3d4-0003-4003-8003-000000000001"
     }
   },
   {
-    "model": "competitions.Classification",
-    "pk": "50000000-0000-0000-0000-000000000008",
+    "model": "competitions.competitionteam",
+    "pk": "a1b2c3d4-0004-4004-8004-000000000011",
     "fields": {
-      "team": "40000000-0000-0000-0000-000000000008",
-      "competition": "30000000-0000-0000-0000-000000000002",
-      "position": 1,
-      "points": 0,
-      "games_played": 0,
-      "wins": 0,
-      "losses": 0,
-      "draws": 0,
-      "score_pro": 0,
-      "score_against": 0,
-      "score_difference": 0
-    }
-  },
-  {
-    "model": "competitions.Classification",
-    "pk": "50000000-0000-0000-0000-000000000009",
-    "fields": {
-      "team": "40000000-0000-0000-0000-000000000009",
-      "competition": "30000000-0000-0000-0000-000000000002",
-      "position": 2,
-      "points": 0,
-      "games_played": 0,
-      "wins": 0,
-      "losses": 0,
-      "draws": 0,
-      "score_pro": 0,
-      "score_against": 0,
-      "score_difference": 0
-    }
-  },
-  {
-    "model": "competitions.Classification",
-    "pk": "50000000-0000-0000-0000-000000000010",
-    "fields": {
-      "team": "40000000-0000-0000-0000-000000000010",
-      "competition": "30000000-0000-0000-0000-000000000002",
-      "position": 3,
-      "points": 0,
-      "games_played": 0,
-      "wins": 0,
-      "losses": 0,
-      "draws": 0,
-      "score_pro": 0,
-      "score_against": 0,
-      "score_difference": 0
-    }
-  },
-  {
-    "model": "competitions.Classification",
-    "pk": "50000000-0000-0000-0000-000000000011",
-    "fields": {
-      "team": "40000000-0000-0000-0000-000000000011",
-      "competition": "30000000-0000-0000-0000-000000000002",
-      "position": 4,
-      "points": 0,
-      "games_played": 0,
-      "wins": 0,
-      "losses": 0,
-      "draws": 0,
-      "score_pro": 0,
-      "score_against": 0,
-      "score_difference": 0
-    }
-  },
-  {
-    "model": "competitions.Classification",
-    "pk": "50000000-0000-0000-0000-000000000012",
-    "fields": {
-      "team": "40000000-0000-0000-0000-000000000012",
-      "competition": "30000000-0000-0000-0000-000000000002",
-      "position": 5,
-      "points": 0,
-      "games_played": 0,
-      "wins": 0,
-      "losses": 0,
-      "draws": 0,
-      "score_pro": 0,
-      "score_against": 0,
-      "score_difference": 0
-    }
-  },
-  {
-    "model": "competitions.Classification",
-    "pk": "50000000-0000-0000-0000-000000000013",
-    "fields": {
-      "team": "40000000-0000-0000-0000-000000000013",
-      "competition": "30000000-0000-0000-0000-000000000002",
-      "position": 6,
-      "points": 0,
-      "games_played": 0,
-      "wins": 0,
-      "losses": 0,
-      "draws": 0,
-      "score_pro": 0,
-      "score_against": 0,
-      "score_difference": 0
-    }
-  },
-  {
-    "model": "competitions.Classification",
-    "pk": "50000000-0000-0000-0000-000000000014",
-    "fields": {
-      "team": "40000000-0000-0000-0000-000000000014",
-      "competition": "30000000-0000-0000-0000-000000000003",
-      "position": 1,
-      "points": 0,
-      "games_played": 0,
-      "wins": 0,
-      "losses": 0,
-      "draws": 0,
-      "score_pro": 0,
-      "score_against": 0,
-      "score_difference": 0
-    }
-  },
-  {
-    "model": "competitions.Classification",
-    "pk": "50000000-0000-0000-0000-000000000015",
-    "fields": {
-      "team": "40000000-0000-0000-0000-000000000015",
-      "competition": "30000000-0000-0000-0000-000000000003",
-      "position": 2,
-      "points": 0,
-      "games_played": 0,
-      "wins": 0,
-      "losses": 0,
-      "draws": 0,
-      "score_pro": 0,
-      "score_against": 0,
-      "score_difference": 0
-    }
-  },
-  {
-    "model": "competitions.Classification",
-    "pk": "50000000-0000-0000-0000-000000000016",
-    "fields": {
-      "team": "40000000-0000-0000-0000-000000000016",
-      "competition": "30000000-0000-0000-0000-000000000003",
-      "position": 3,
-      "points": 0,
-      "games_played": 0,
-      "wins": 0,
-      "losses": 0,
-      "draws": 0,
-      "score_pro": 0,
-      "score_against": 0,
-      "score_difference": 0
-    }
-  },
-  {
-    "model": "competitions.Classification",
-    "pk": "50000000-0000-0000-0000-000000000017",
-    "fields": {
-      "team": "40000000-0000-0000-0000-000000000017",
-      "competition": "30000000-0000-0000-0000-000000000003",
-      "position": 4,
-      "points": 0,
-      "games_played": 0,
-      "wins": 0,
-      "losses": 0,
-      "draws": 0,
-      "score_pro": 0,
-      "score_against": 0,
-      "score_difference": 0
-    }
-  },
-  {
-    "model": "competitions.Classification",
-    "pk": "50000000-0000-0000-0000-000000000018",
-    "fields": {
-      "team": "40000000-0000-0000-0000-000000000018",
-      "competition": "30000000-0000-0000-0000-000000000003",
-      "position": 5,
-      "points": 0,
-      "games_played": 0,
-      "wins": 0,
-      "losses": 0,
-      "draws": 0,
-      "score_pro": 0,
-      "score_against": 0,
-      "score_difference": 0
-    }
-  },
-  {
-    "model": "competitions.Classification",
-    "pk": "50000000-0000-0000-0000-000000000019",
-    "fields": {
-      "team": "40000000-0000-0000-0000-000000000019",
-      "competition": "30000000-0000-0000-0000-000000000003",
-      "position": 6,
-      "points": 0,
-      "games_played": 0,
-      "wins": 0,
-      "losses": 0,
-      "draws": 0,
-      "score_pro": 0,
-      "score_against": 0,
-      "score_difference": 0
-    }
-  },
-  {
-    "model": "competitions.Classification",
-    "pk": "50000000-0000-0000-0000-000000000020",
-    "fields": {
-      "team": "40000000-0000-0000-0000-000000000020",
-      "competition": "30000000-0000-0000-0000-000000000003",
-      "position": 7,
-      "points": 0,
-      "games_played": 0,
-      "wins": 0,
-      "losses": 0,
-      "draws": 0,
-      "score_pro": 0,
-      "score_against": 0,
-      "score_difference": 0
+      "competition": "a1b2c3d4-0003-4003-8003-000000000001"
     }
   }
 ]
