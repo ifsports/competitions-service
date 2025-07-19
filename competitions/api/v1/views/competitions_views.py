@@ -1,4 +1,4 @@
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import PermissionDenied, AuthenticationFailed
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -6,6 +6,8 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.shortcuts import get_object_or_404
 from django.db.models import Prefetch
 from rest_framework.pagination import PageNumberPagination
+
+from jose import jwt, JWTError
 
 from competitions.auth.auth_utils import has_role
 from competitions.models import (
@@ -22,16 +24,38 @@ from competitions.api.v1.serializers import (
     ClassificationSerializer, CompetitionTeamsInfoSerializer
 )
 
+SECRET_KEY = "django-insecure-f=td$@o*6$utz@_2kvjf$zss#*r_8f74whhgo9y#p7rz@t*ii("
+ALGORITHM = "HS256"
+
 class CompetitionsAPIView(APIView):
     def get_permissions(self):
         if self.request.method == 'POST':
             return [IsAuthenticated()]
         return [AllowAny()]
 
-    def get(self, request, campus_code):
+    def get(self, request):
         """
         Retorna todas as competições para um campus específico.
         """
+        campus_code = request.query_params.get("campus_code")
+        groups = []
+
+        auth_header = request.headers.get("Authorization")
+        if auth_header and auth_header.startswith("Bearer "):
+            token = auth_header.split(" ")[1]
+            try:
+                payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+                campus_code = payload.get("campus", campus_code)
+                groups = payload.get("groups", [])
+            except JWTError:
+                raise AuthenticationFailed("Token inválido ou expirado.")
+
+        if not campus_code:
+            return Response(
+                {"detail": "Campus não especificado."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         campus = get_object_or_404(Campus, code=campus_code)
         competitions = Competition.objects.filter(modality__campus=campus)
 
@@ -39,7 +63,7 @@ class CompetitionsAPIView(APIView):
             return Response({"message": "No competitions found for this campus."}, status=status.HTTP_404_NOT_FOUND)
 
         serializer = CompetitionSerializer(competitions, many=True)
-        
+
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     def post(self, request, campus_code):
@@ -47,8 +71,6 @@ class CompetitionsAPIView(APIView):
         Cria uma nova competição.
         """
         groups = request.user.groups
-
-        campus = get_object_or_404(Campus, code=campus_code)
 
         if has_role(groups, "Organizador"):
             serializer = CompetitionSerializer(data=request.data)
@@ -447,10 +469,29 @@ class MatchesAPIView(APIView):
     """
     permission_classes = [AllowAny]
 
-    def get(self, request, campus_code):
+    def get(self, request):
         """
         Retorna todas as partidas de todas as competições de um campus específico.
         """
+        campus_code = request.query_params.get("campus_code")
+        groups = []
+
+        auth_header = request.headers.get("Authorization")
+        if auth_header and auth_header.startswith("Bearer "):
+            token = auth_header.split(" ")[1]
+            try:
+                payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+                campus_code = payload.get("campus", campus_code)
+                groups = payload.get("groups", [])
+            except JWTError:
+                raise AuthenticationFailed("Token inválido ou expirado.")
+
+        if not campus_code:
+            return Response(
+                {"detail": "Campus não especificado."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         campus = get_object_or_404(Campus, code=campus_code)
         competitions = Competition.objects.filter(modality__campus=campus)
 
