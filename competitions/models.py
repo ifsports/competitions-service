@@ -2,22 +2,10 @@ from django.db import models
 import uuid
 
 
-class Campus(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    code = models.CharField(max_length=100, unique=True, blank=False, null=False)
-
-    class Meta:
-        verbose_name = "Campus"
-        verbose_name_plural = "Campi"
-
-    def __str__(self):
-        return self.code
-
-
 class Modality(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100, unique=True, blank=False, null=False)
-    campus = models.ForeignKey(Campus, on_delete=models.CASCADE)
+    campus = models.CharField(max_length=10, blank=False, null=False)
 
     class Meta:
         verbose_name = "Modalidade"

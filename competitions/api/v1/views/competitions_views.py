@@ -11,7 +11,7 @@ from jose import jwt, JWTError
 
 from competitions.auth.auth_utils import has_role
 from competitions.models import (
-    Competition, Campus, CompetitionTeam, Round, Match
+    Competition, CompetitionTeam, Round, Match
 )
 
 from competitions.api.v1.services.league_services.league_services import get_competition_standings, generate_league_competition, finish_match
@@ -56,8 +56,7 @@ class CompetitionsAPIView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        campus = get_object_or_404(Campus, code=campus_code)
-        competitions = Competition.objects.filter(modality__campus=campus)
+        competitions = Competition.objects.filter(modality__campus=campus_code)
 
         if not competitions.exists():
             return Response({"message": "No competitions found for this campus."}, status=status.HTTP_404_NOT_FOUND)
@@ -66,7 +65,7 @@ class CompetitionsAPIView(APIView):
 
         return Response(serializer.data, status=status.HTTP_200_OK)
     
-    def post(self, request, campus_code):
+    def post(self, request):
         """
         Cria uma nova competição.
         """
@@ -492,8 +491,7 @@ class MatchesAPIView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        campus = get_object_or_404(Campus, code=campus_code)
-        competitions = Competition.objects.filter(modality__campus=campus)
+        competitions = Competition.objects.filter(modality__campus=campus_code)
 
         if not competitions.exists():
             return Response({"message": "No competitions found for this campus."}, status=status.HTTP_404_NOT_FOUND)

@@ -14,14 +14,15 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='Campus',
+            name='Modality',
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('code', models.CharField(max_length=100, unique=True)),
+                ('name', models.CharField(max_length=100, unique=True)),
+                ('campus', models.CharField(max_length=10)),
             ],
             options={
-                'verbose_name': 'Campus',
-                'verbose_name_plural': 'Campi',
+                'verbose_name': 'Modalidade',
+                'verbose_name_plural': 'Modalidades',
             },
         ),
         migrations.CreateModel(
@@ -37,6 +38,7 @@ class Migration(migrations.Migration):
                 ('min_members_per_team', models.IntegerField(blank=True, null=True)),
                 ('teams_per_group', models.IntegerField(blank=True, null=True)),
                 ('teams_qualified_per_group', models.IntegerField(blank=True, null=True)),
+                ('modality', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='competitions.modality')),
             ],
         ),
         migrations.CreateModel(
@@ -65,18 +67,6 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.CreateModel(
-            name='Modality',
-            fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('name', models.CharField(max_length=100, unique=True)),
-                ('campus', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='competitions.campus')),
-            ],
-            options={
-                'verbose_name': 'Modalidade',
-                'verbose_name_plural': 'Modalidades',
-            },
-        ),
-        migrations.CreateModel(
             name='Match',
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
@@ -88,15 +78,13 @@ class Migration(migrations.Migration):
                 ('competition', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='competitions.competition')),
                 ('group', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='competitions.group')),
                 ('round', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='competitions.round')),
-                ('team_away', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='away_team', to='competitions.competitionteam')),
-                ('team_home', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='home_team', to='competitions.competitionteam')),
-                ('winner', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='competitions.competitionteam')),
+                ('team_away', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='away_team', to='competitions.competitionteam')),
+                ('team_home', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='home_team', to='competitions.competitionteam')),
+                ('home_feeder_match', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='feeds_home_team', to='competitions.match')),
+                ('away_feeder_match', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='feeds_away_team', to='competitions.match')),
+                ('winner', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL,
+                                             to='competitions.competitionteam')),
             ],
-        ),
-        migrations.AddField(
-            model_name='competition',
-            name='modality',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='competitions.modality'),
         ),
         migrations.CreateModel(
             name='Classification',

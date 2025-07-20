@@ -61,7 +61,7 @@ REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'auth.jwt_authentication.JWTAuthentication',
+        'competitions.auth.jwt_authentication.JWTAuthentication',
     ],
 
     # Para ignorar as permissões por enquanto (torna tudo acessível):

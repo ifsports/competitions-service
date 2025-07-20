@@ -36,3 +36,34 @@ class JWTUser:
         self.matricula = matricula
         self.campus = campus
         self.groups = groups
+
+    @property
+    def is_authenticated(self):
+        return True
+
+    @property
+    def is_anonymous(self):
+        return False
+
+    @property
+    def is_staff(self):
+        return "Admin" in self.groups
+
+    @property
+    def is_active(self):
+        return True
+
+    def has_perm(self, perm, obj=None):
+        return False
+
+    def has_module_perms(self, app_label):
+        return False
+
+    def has_group(self, group_name):
+        return group_name in self.groups
+
+    def get_group_permissions(self, obj=None):
+        return set()
+
+    def get_username(self):
+        return self.matricula

@@ -17,20 +17,12 @@ class CompetitionSerializer(serializers.ModelSerializer):
         ]
 
 class ModalitySerializer(serializers.ModelSerializer):
-    campus = serializers.PrimaryKeyRelatedField(queryset=Campus.objects.all(), required=False)
     id = serializers.IntegerField(required=False, read_only=True)
 
     class Meta:
         model = Modality
         fields = ['id', 'name', 'campus']
 
-    def create(self, validated_data):
-        # Pega o campus do contexto se não foi enviado nos dados
-        if 'campus' not in validated_data and 'campus_code' not in self.context:
-            raise serializers.ValidationError("Campus is required to create a modality.")
-        if 'campus' not in validated_data:
-            validated_data['campus'] = self.context.get('campus')
-        return super().create(validated_data)
 
 class CompetitionTeamSerializer(serializers.ModelSerializer):
     competition = serializers.PrimaryKeyRelatedField(queryset=Competition.objects.all())
