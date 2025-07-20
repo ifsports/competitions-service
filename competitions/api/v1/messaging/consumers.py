@@ -14,7 +14,7 @@ except Exception as e:
 import aio_pika
 import json
 
-from competitions.api.v1.services import update_team_from_request_in_db_django, handle_match_finished_message
+from competitions.api.v1.services.league_services.league_services import update_team_from_request_in_db_django, handle_match_finished_message
 
 RABBITMQ_USER_DEFAULT = "guest"
 RABBITMQ_PASSWORD_DEFAULT = "guest"
