@@ -58,9 +58,6 @@ class CompetitionsAPIView(APIView):
 
         competitions = Competition.objects.filter(modality__campus=campus_code)
 
-        if not competitions.exists():
-            return Response({"message": "No competitions found for this campus."}, status=status.HTTP_404_NOT_FOUND)
-
         serializer = CompetitionSerializer(competitions, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -94,7 +91,7 @@ class CompetitionRetrieveUpdateDestroyAPIView(APIView):
         Retorna uma competição específica.
         """
         
-        competition = get_object_or_404(Competition, id=competition_id)
+        competition = Competition.objects.filter(id=competition_id)
 
         serializer = CompetitionSerializer(competition)
         
@@ -193,9 +190,6 @@ class CompetitionTeamsAPIView(APIView):
         competition = get_object_or_404(Competition, id=competition_id)
 
         teams = CompetitionTeam.objects.filter(competition=competition)
-
-        if not teams.exists():
-            return Response({"message": "No teams found for this competition."}, status=status.HTTP_404_NOT_FOUND)
         
         serializer = CompetitionTeamSerializer(teams, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -363,9 +357,6 @@ class CompetitionRoundsAPIView(APIView):
 
         rounds = Round.objects.filter(match__competition=competition).distinct()
 
-        if not rounds.exists():
-            return Response({"message": "No rounds found for this competition."}, status=status.HTTP_404_NOT_FOUND)
-
         paginator = PageNumberPagination()
         page = paginator.paginate_queryset(rounds, request, view=self)
 
@@ -400,12 +391,6 @@ class CompetitionRoundMatchesAPIView(APIView):
         
         page = paginator.paginate_queryset(rounds_queryset, request, view=self)
 
-        if not page:
-            return Response(
-                {"detail": "Nenhuma rodada encontrada para esta competição."}, 
-                status=status.HTTP_404_NOT_FOUND
-            )
-
         serializer = RoundMatchesSerializer(page, many=True)
         
         return paginator.get_paginated_response(serializer.data)
@@ -423,9 +408,6 @@ class CompetitionMatchesAPIView(APIView):
 
         paginator = PageNumberPagination()
         page = paginator.paginate_queryset(matches_queryset, request, view=self)
-
-        if not page:
-            return Response({"message": "No matches found for this competition."}, status=status.HTTP_404_NOT_FOUND)
         
         serializer = MatchSerializer(page, many=True)
         return paginator.get_paginated_response(serializer.data)
@@ -446,15 +428,8 @@ class RoundMatchesAPIView(APIView):
                 'round', 
                 'competition'
             ))).distinct().first()
-        
-
-        if not round.exists():
-            return Response({"message": "Round not found for this competition."}, status=status.HTTP_404_NOT_FOUND)
 
         matches = round.match_set.all()
-
-        if not matches.exists():
-            return Response({"message": "No matches found for this round."}, status=status.HTTP_404_NOT_FOUND)
 
         paginator = PageNumberPagination()
         page = paginator.paginate_queryset(matches, request, view=self)
@@ -493,13 +468,7 @@ class MatchesAPIView(APIView):
 
         competitions = Competition.objects.filter(modality__campus=campus_code)
 
-        if not competitions.exists():
-            return Response({"message": "No competitions found for this campus."}, status=status.HTTP_404_NOT_FOUND)
-
         matches = Match.objects.filter(competition__in=competitions).all()
-
-        if not matches.exists():
-            return Response({"message": "No matches found for this campus."}, status=status.HTTP_404_NOT_FOUND)
 
         paginator = PageNumberPagination()
         page = paginator.paginate_queryset(matches, request, view=self)
