@@ -3,8 +3,6 @@ from competitions.models import *
 
 class CompetitionSerializer(serializers.ModelSerializer):
     modality = serializers.PrimaryKeyRelatedField(queryset=Modality.objects.all())
-    image = serializers.ImageField(required=False, allow_null=True)
-    min_members_per_team = serializers.IntegerField(required=False, allow_null=True)
     teams_per_group = serializers.IntegerField(required=False, allow_null=True)
     teams_qualified_per_group = serializers.IntegerField(required=False, allow_null=True)
     
@@ -17,7 +15,7 @@ class CompetitionSerializer(serializers.ModelSerializer):
         ]
 
 class ModalitySerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(required=False, read_only=True)
+    id = serializers.UUIDField(format='hex_verbose', required=False, read_only=True)
 
     class Meta:
         model = Modality
