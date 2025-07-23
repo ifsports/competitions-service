@@ -69,7 +69,7 @@ class ModalityAPIView(APIView):
 
             if serializer.is_valid():
                 name = serializer.validated_data["name"]
-                modality_name_exists = Modality.objects.filter(name=name).exists()
+                modality_name_exists = Modality.objects.filter(name=name, campus=campus_code).exists()
 
                 if modality_name_exists:
                     raise ValidationError(detail="Já existe uma modalidade com esse nome.")

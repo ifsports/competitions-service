@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
             name='Modality',
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('name', models.CharField(max_length=100, unique=True)),
+                ('name', models.CharField(max_length=100)),
                 ('campus', models.CharField(max_length=10)),
             ],
             options={
@@ -29,7 +29,7 @@ class Migration(migrations.Migration):
             name='Competition',
             fields=[
                 ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('name', models.CharField(max_length=100, unique=True)),
+                ('name', models.CharField(max_length=100)),
                 ('status', models.CharField(choices=[('not-started', 'Not Started'), ('in-progress', 'In Progress'), ('finished', 'Finished')], default='not-started', max_length=50)),
                 ('start_date', models.DateField(blank=True, null=True)),
                 ('end_date', models.DateField(blank=True, null=True)),
