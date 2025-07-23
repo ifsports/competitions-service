@@ -1,6 +1,6 @@
 from http.client import HTTPException
 
-from rest_framework.exceptions import PermissionDenied, AuthenticationFailed
+from rest_framework.exceptions import PermissionDenied, AuthenticationFailed, ValidationError
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -68,6 +68,12 @@ class ModalityAPIView(APIView):
             serializer = ModalitySerializer(data=data_serializer)
 
             if serializer.is_valid():
+                name = serializer.validated_data["name"]
+                modality_name_exists = Modality.objects.filter(name=name).exists()
+
+                if modality_name_exists:
+                    raise ValidationError(detail="Já existe uma modalidade com esse nome.")
+
                 modality = serializer.save()
                 return Response(ModalitySerializer(modality).data, status=status.HTTP_201_CREATED)
 

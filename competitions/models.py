@@ -4,7 +4,7 @@ import uuid
 
 class Modality(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=100, unique=True, blank=False, null=False)
+    name = models.CharField(max_length=100, blank=False, null=False)
     campus = models.CharField(max_length=10, blank=False, null=False)
 
     class Meta:
@@ -30,7 +30,7 @@ class Competition(models.Model):
         ('finished', 'Finished'),
     ]
 
-    name = models.CharField(max_length=100, unique=True, blank=False, null=False)
+    name = models.CharField(max_length=100, blank=False, null=False)
     modality = models.ForeignKey(Modality, on_delete=models.CASCADE)
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='not-started')
     start_date = models.DateField(blank=True, null=True)

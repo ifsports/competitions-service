@@ -1,4 +1,4 @@
-from rest_framework.exceptions import PermissionDenied, AuthenticationFailed
+from rest_framework.exceptions import PermissionDenied, AuthenticationFailed, ValidationError
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -11,7 +11,7 @@ from jose import jwt, JWTError
 
 from competitions.auth.auth_utils import has_role
 from competitions.models import (
-    Competition, CompetitionTeam, Round, Match
+    Competition, CompetitionTeam, Round, Match, Modality
 )
 
 from competitions.api.v1.services.league_services.league_services import get_competition_standings, generate_league_competition, finish_match
@@ -67,11 +67,25 @@ class CompetitionsAPIView(APIView):
         Cria uma nova competição.
         """
         groups = request.user.groups
+        campus_code = request.user.campus
 
         if has_role(groups, "Organizador"):
             serializer = CompetitionSerializer(data=request.data)
 
             if serializer.is_valid():
+                modality_id = request.data.get("modality")
+
+                modality = get_object_or_404(Modality, id=modality_id)
+
+                if modality.campus != campus_code:
+                    raise ValidationError(detail="Você não pode criar uma competição nessa modalidade.")
+
+                name = serializer.validated_data["name"]
+                competition_name_exists = Competition.objects.filter(name=name).exists()
+
+                if competition_name_exists:
+                    raise ValidationError(detail="Já existe uma competição com esse nome.")
+
                 competition = serializer.save()
                 return Response(CompetitionSerializer(competition).data, status=status.HTTP_201_CREATED)
 
