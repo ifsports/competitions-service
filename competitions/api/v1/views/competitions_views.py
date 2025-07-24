@@ -617,7 +617,27 @@ class MatchRetrieveUpdateAPIView(APIView):
             serializer = MatchSerializer(match, data=request.data)
 
             if serializer.is_valid():
+                old_data = MatchSerializer(match).data
                 match = serializer.save(partial=True)
+                new_data = MatchSerializer(match).data
+
+                # Gera o payload de auditoria (match.updated)
+                log_payload = generate_log_payload(
+                    event_type="match.updated",
+                    service_origin="competitions_service",
+                    entity_type="match",
+                    entity_id=match.id,
+                    operation_type="UPDATE",
+                    campus_code=match.competition.modality.campus,
+                    user_registration=request.user.user_registration,
+                    request_object=request,
+                    old_data=old_data,
+                    new_data=new_data
+                )
+
+                # Publica o log de auditoria
+                run_async_audit(log_payload)
+
                 return Response(MatchSerializer(match).data, status=status.HTTP_200_OK)
 
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -638,8 +658,28 @@ class MatchStartAPIView(APIView):
 
         if has_role(groups, "Organizador"):
             if match.status == 'not-started':
+                old_data = MatchSerializer(match).data
                 match.status = 'in-progress'
                 match.save()
+                new_data = MatchSerializer(match).data
+
+                # Gera o payload de auditoria (match.updated)
+                log_payload = generate_log_payload(
+                    event_type="match.updated",
+                    service_origin="competitions_service",
+                    entity_type="match",
+                    entity_id=match.id,
+                    operation_type="UPDATE",
+                    campus_code=match.competition.modality.campus,
+                    user_registration=request.user.user_registration,
+                    request_object=request,
+                    old_data=old_data,
+                    new_data=new_data
+                )
+
+                # Publica o log de auditoria
+                run_async_audit(log_payload)
+
                 return Response({"message": "Match status updated to in-progress."}, status=status.HTTP_200_OK)
 
             return Response({"message": "Match is already in progress or finished."}, status=status.HTTP_400_BAD_REQUEST)
@@ -660,7 +700,27 @@ class MatchFinishAPIView(APIView):
 
         if has_role(groups, "Organizador"):
             if match.status == 'in-progress':
+                old_data = MatchSerializer(match).data
                 finish_match(match)
+                new_data = MatchSerializer(match).data
+
+                # Gera o payload de auditoria (match.updated)
+                log_payload = generate_log_payload(
+                    event_type="match.updated",
+                    service_origin="competitions_service",
+                    entity_type="match",
+                    entity_id=match.id,
+                    operation_type="UPDATE",
+                    campus_code=match.competition.modality.campus,
+                    user_registration=request.user.user_registration,
+                    request_object=request,
+                    old_data=old_data,
+                    new_data=new_data
+                )
+
+                # Publica o log de auditoria
+                run_async_audit(log_payload)
+
                 return Response({"message": "Match data updated and finished."}, status=status.HTTP_200_OK)
 
             return Response({"message": "Match is already finished or not started."}, status=status.HTTP_400_BAD_REQUEST)
