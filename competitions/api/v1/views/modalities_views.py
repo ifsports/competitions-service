@@ -13,6 +13,9 @@ from competitions.auth.auth_utils import has_role
 from competitions.models import Modality
 from competitions.api.v1.serializers import ModalitySerializer
 
+from competitions.api.v1.messaging.publishers import generate_log_payload
+from competitions.api.v1.messaging.utils import run_async_audit
+
 SECRET_KEY = "django-insecure-f=td$@o*6$utz@_2kvjf$zss#*r_8f74whhgo9y#p7rz@t*ii("
 ALGORITHM = "HS256"
 
@@ -75,6 +78,23 @@ class ModalityAPIView(APIView):
                     raise ValidationError(detail="Já existe uma modalidade com esse nome.")
 
                 modality = serializer.save()
+
+                # Gera o payload de auditoria (modality.created)
+                log_payload = generate_log_payload(
+                    event_type="modality.created",
+                    service_origin="competitions_service",
+                    entity_type="modality",
+                    entity_id=modality.id,
+                    operation_type="create",
+                    campus_code=campus_code,
+                    user_registration=request.user.username,
+                    request_object=request,
+                    new_data=ModalitySerializer(modality).data
+                )
+
+                # Publica o log de auditoria
+                run_async_audit(log_payload)
+
                 return Response(ModalitySerializer(modality).data, status=status.HTTP_201_CREATED)
 
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -104,7 +124,7 @@ class ModalityRetrieveUpdateDestroyAPIView(APIView):
     
     def put(self, request, modality_id):
         """
-        Atualiza uma modalidade específica para um campus específico.
+        Atualiza uma modalidade específica.
         """
         groups = request.user.groups
         campus_code = request.user.campus
@@ -114,7 +134,27 @@ class ModalityRetrieveUpdateDestroyAPIView(APIView):
         if has_role(groups, "Organizador"):
             serializer = ModalitySerializer(modality, data=request.data, partial=True)
             if serializer.is_valid():
+                old_data = ModalitySerializer(modality).data
                 serializer.save()
+                new_data = serializer.data
+
+                # Gera o payload de auditoria (modality.updated)
+                log_payload = generate_log_payload(
+                    event_type="modality.updated",
+                    service_origin="competitions_service",
+                    entity_type="modality",
+                    entity_id=modality.id,
+                    operation_type="update",
+                    campus_code=campus_code,
+                    user_registration=request.user.username,
+                    request_object=request,
+                    old_data=old_data,
+                    new_data=new_data
+                )
+
+                # Publica o log de auditoria
+                run_async_audit(log_payload)
+
                 return Response(serializer.data, status=status.HTTP_200_OK)
 
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -132,7 +172,25 @@ class ModalityRetrieveUpdateDestroyAPIView(APIView):
         modality = get_object_or_404(Modality, id=modality_id, campus=campus_code)
 
         if has_role(groups, "Organizador"):
+            old_data = ModalitySerializer(modality).data
             modality.delete()
+
+            # Gera o payload de auditoria (modality.deleted)
+            log_payload = generate_log_payload(
+                event_type="modality.deleted",
+                service_origin="competitions_service",
+                entity_type="modality",
+                entity_id=modality.id,
+                operation_type="delete",
+                campus_code=campus_code,
+                user_registration=request.user.username,
+                request_object=request,
+                old_data=old_data
+            )
+
+            # Publica o log de auditoria
+            run_async_audit(log_payload)
+            
             return Response({"message": "Modality deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
 
         else:
