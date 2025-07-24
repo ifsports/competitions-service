@@ -24,6 +24,9 @@ from competitions.api.v1.serializers import (
     ClassificationSerializer, CompetitionTeamsInfoSerializer
 )
 
+from competitions.api.v1.messaging.publishers import generate_log_payload
+from competitions.api.v1.messaging.utils import run_async_audit
+
 SECRET_KEY = "django-insecure-f=td$@o*6$utz@_2kvjf$zss#*r_8f74whhgo9y#p7rz@t*ii("
 ALGORITHM = "HS256"
 
@@ -87,10 +90,25 @@ class CompetitionsAPIView(APIView):
                     raise ValidationError(detail="Já existe uma competição com esse nome.")
 
                 competition = serializer.save()
+
+                # Publica log de auditoria
+                log_payload = generate_log_payload(
+                    event_type="competition.created",
+                    service_origin="competitions_service",
+                    entity_type="competition",
+                    entity_id=competition.id,
+                    operation_type="CREATE",
+                    campus_code=campus_code,
+                    user_registration=request.user.user_registration,
+                    request_object=request,
+                    new_data=serializer.data
+                )
+
+                run_async_audit(log_payload)
+
                 return Response(CompetitionSerializer(competition).data, status=status.HTTP_201_CREATED)
 
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
         else:
             raise PermissionDenied("Você não tem permissão para criar uma competição.")
 
