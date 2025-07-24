@@ -182,7 +182,25 @@ class CompetitionRetrieveUpdateDestroyAPIView(APIView):
         competition = get_object_or_404(Competition, id=competition_id)
 
         if has_role(groups, "Organizador"):
+            old_competition = CompetitionSerializer(competition).data
             competition.delete()
+
+            # Gera o payload de auditoria (competition.deleted)
+            log_payload = generate_log_payload(
+                event_type="competition.deleted",
+                service_origin="competitions_service",
+                entity_type="competition",
+                entity_id=competition.id,
+                operation_type="DELETE",
+                campus_code=competition.modality.campus,
+                user_registration=request.user.user_registration,
+                request_object=request,
+                old_data=old_competition
+            )
+
+            # Publica o log de auditoria
+            run_async_audit(log_payload)
+
             return Response({"message": "Competition deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
 
         else:
