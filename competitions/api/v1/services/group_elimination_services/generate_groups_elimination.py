@@ -4,6 +4,9 @@ import random
 from competitions.models import Competition, Round, CompetitionTeam, Match, Classification, Group
 from competitions.api.v1.messaging.publishers import publish_match_created
 from competitions.api.v1.services.group_elimination_services.generate_eliminations import generate_elimination_stage, is_power_of_two
+from competitions.api.v1.messaging.publishers import generate_log_payload
+from competitions.api.v1.messaging.utils import run_async_audit
+from competitions.api.v1.serializers import MatchSerializer
 
 from math import ceil
 
@@ -79,6 +82,7 @@ def generate_group_matches(competition: Competition, group: Group):
             'team_home_id': str(match.team_home.team_id),
             'team_away_id': str(match.team_away.team_id),
             'status': 'pending',
+            'competition_id': str(competition.id),
         }
 
         # Publica a partida criada no RabbitMQ

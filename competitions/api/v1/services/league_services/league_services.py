@@ -59,6 +59,7 @@ def generate_league_competition(competition: Competition):
                 'team_home_id': str(match.team_home.team_id),
                 'team_away_id': str(match.team_away.team_id),
                 'status': 'pending',
+                'competition_id': str(competition.id),
             }
 
             # Publica a partida criada no RabbitMQ
