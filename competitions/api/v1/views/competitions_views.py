@@ -91,7 +91,7 @@ class CompetitionsAPIView(APIView):
 
                 competition = serializer.save()
 
-                # Publica log de auditoria
+                # Publica log de auditoria (competition.created)
                 log_payload = generate_log_payload(
                     event_type="competition.created",
                     service_origin="competitions_service",
@@ -141,8 +141,32 @@ class CompetitionRetrieveUpdateDestroyAPIView(APIView):
             serializer = CompetitionSerializer(competition, data=request.data)
 
             if serializer.is_valid():
-                competition = serializer.save()
-                return Response(CompetitionSerializer(competition).data, status=status.HTTP_200_OK)
+                old_competition = CompetitionSerializer(competition).data
+                
+                serializer.save()
+                
+                new_competition = serializer.data
+
+
+                # Gera o payload de auditoria (competition.updated)
+                log_payload = generate_log_payload(
+                    event_type="competition.updated",
+                    service_origin="competitions_service",
+                    entity_type="competition",
+                    entity_id=competition.id,
+                    operation_type="UPDATE",
+                    campus_code=competition.modality.campus,
+                    user_registration=request.user.user_registration,
+                    request_object=request,
+                    old_data=old_competition,
+                    new_data=new_competition
+                )
+
+                # Publica o log de auditoria
+                run_async_audit(log_payload)
+
+                # Retorna a competição atualizada
+                return Response(new_competition, status=status.HTTP_200_OK)
 
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -177,8 +201,28 @@ class CompetitionSetInProgress(APIView):
 
         if has_role(groups, "Organizador"):
             if competition.status == 'not-started':
+                old_competition = competition
+                
                 competition.status = 'in-progress'
                 competition.save()
+
+                # Gera o payload de auditoria
+                log_payload = generate_log_payload(
+                    event_type="competition.updated",
+                    service_origin="competitions_service",
+                    entity_type="competition",
+                    entity_id=competition.id,
+                    operation_type="UPDATE",
+                    campus_code=competition.modality.campus,
+                    user_registration=request.user.user_registration,
+                    request_object=request,
+                    old_data={"status": old_competition.status},
+                    new_data={"status": competition.status}
+                )
+
+                # Publica o log de auditoria
+                run_async_audit(log_payload)
+
                 return Response({"message": "Competition status updated to in-progress."}, status=status.HTTP_200_OK)
 
             return Response({"message": "Competition is already in progress or finished."}, status=status.HTTP_400_BAD_REQUEST)
@@ -199,8 +243,28 @@ class CompetitionSetFinished(APIView):
 
         if has_role(groups, "Organizador"):
             if competition.status == 'in-progress':
+                old_competition = competition
+
                 competition.status = 'finished'
                 competition.save()
+
+                # Gera o payload de auditoria
+                log_payload = generate_log_payload(
+                    event_type="competition.updated",
+                    service_origin="competitions_service",
+                    entity_type="competition",
+                    entity_id=competition.id,
+                    operation_type="UPDATE",
+                    campus_code=competition.modality.campus,
+                    user_registration=request.user.user_registration,
+                    request_object=request,
+                    old_data={"status": old_competition.status},
+                    new_data={"status": competition.status}
+                )
+
+                # Publica o log de auditoria
+                run_async_audit(log_payload)
+                
                 return Response({"message": "Competition status updated to finished."}, status=status.HTTP_200_OK)
 
             return Response({"message": "Competition is already finished or is not-started."}, status=status.HTTP_400_BAD_REQUEST)
@@ -267,7 +331,7 @@ class GenerateCompetitionsAPIView(APIView):
 
     def post(self, request, competition_id):
         """
-        Gera equipes para uma competição específica.
+        Gera os jogos e classificações de uma competição específica.
         """
         groups = request.user.groups
         
@@ -296,14 +360,14 @@ class GenerateCompetitionsAPIView(APIView):
                     return Response({'error': str(e)})
 
         else:
-            raise PermissionDenied("Você não tem permissão para gerar equipes para uma competição.")
+            raise PermissionDenied("Você não tem permissão para gerar uma competição.")
 
 class EndGroupStageAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, competition_id):
         """
-        Finaliza a fase de grupos de uma competição específica.
+        Finaliza a fase de grupos e gera fase eliminatorias de uma competição específica.
         """
         groups = request.user.groups
         
