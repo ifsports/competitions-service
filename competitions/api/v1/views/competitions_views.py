@@ -99,7 +99,7 @@ class CompetitionsAPIView(APIView):
                     entity_id=competition.id,
                     operation_type="CREATE",
                     campus_code=campus_code,
-                    user_registration=request.user.user_registration,
+                    user_registration=request.user.matricula,
                     request_object=request,
                     new_data=serializer.data
                 )

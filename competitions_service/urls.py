@@ -3,6 +3,8 @@ from django.urls import path, include
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 from competitions.api.v1.views.competitions_views import CompetitionsAPIView, MatchesAPIView
 from competitions.api.v1.views.modalities_views import ModalityAPIView
+from django.conf import settings
+from django.conf.urls.static import static
 
 
 urlpatterns = [
@@ -19,3 +21,6 @@ urlpatterns = [
     path('api/v1/modalities/', include(('competitions.api.v1.urls.modalities_urls', 'modalities'),
         namespace='modalities')),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
