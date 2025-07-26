@@ -1,8 +1,9 @@
+import os
 from rest_framework.authentication import BaseAuthentication
 from rest_framework import exceptions
 from jose import jwt, JWTError
 
-SECRET_KEY = "django-insecure-f=td$@o*6$utz@_2kvjf$zss#*r_8f74whhgo9y#p7rz@t*ii("
+SECRET_KEY = os.environ.get('JWT_SECRET_KEY')
 ALGORITHM = "HS256"
 
 class JWTAuthentication(BaseAuthentication):
