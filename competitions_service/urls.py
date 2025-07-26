@@ -15,7 +15,6 @@ urlpatterns = [
     path('api/v1/competitions/',include(
         ('competitions.api.v1.urls.competitions_urls', 'competitions'),
         namespace='competitions')),
-    path('api/v1/matches/', MatchesAPIView.as_view(), name='matches:list'),
     # Modalities URLS
     path('api/v1/modalities/', ModalityAPIView.as_view(), name='modalities:list_and_create'),
     path('api/v1/modalities/', include(('competitions.api.v1.urls.modalities_urls', 'modalities'),
