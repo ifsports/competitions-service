@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from rest_framework.exceptions import PermissionDenied, AuthenticationFailed, ValidationError
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -590,6 +592,30 @@ class MatchesAPIView(APIView):
         serializer = MatchSerializer(page, many=True)
         return paginator.get_paginated_response(serializer.data)
 
+
+class MatchesTodayAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request, competition_id=None):
+        campus_code = request.query_params.get('campus_code')
+        today = datetime.now().date()
+
+        if campus_code:
+            matches_queryset = Match.objects.filter(
+                competition__modality__campus=campus_code,
+                scheduled_datetime__date=today
+            )
+        else:
+            competition = get_object_or_404(Competition, id=competition_id)
+            matches_queryset = Match.objects.filter(
+                competition=competition,
+                scheduled_datetime__date=today
+            )
+
+        serializer = MatchSerializer(matches_queryset, many=True)
+        return Response(serializer.data)
+
+
 class MatchRetrieveUpdateAPIView(APIView):
     def get_permissions(self):
         if self.request.method == 'PUT':
@@ -614,7 +640,7 @@ class MatchRetrieveUpdateAPIView(APIView):
         match = get_object_or_404(Match, id=match_id)
 
         if has_role(groups, "Organizador"):
-            serializer = MatchSerializer(match, data=request.data)
+            serializer = MatchSerializer(match, data=request.data, partial=True)
 
             if serializer.is_valid():
                 old_data = MatchSerializer(match).data
