@@ -29,7 +29,9 @@ from competitions.api.v1.serializers import (
 from competitions.api.v1.messaging.publishers import generate_log_payload
 from competitions.api.v1.messaging.utils import run_async_audit
 
-SECRET_KEY = "django-insecure-f=td$@o*6$utz@_2kvjf$zss#*r_8f74whhgo9y#p7rz@t*ii("
+import os
+
+SECRET_KEY = os.environ.get('JWT_SECRET_KEY')
 ALGORITHM = "HS256"
 
 class CompetitionsAPIView(APIView):

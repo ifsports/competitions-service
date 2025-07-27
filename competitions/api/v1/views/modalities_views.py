@@ -16,7 +16,9 @@ from competitions.api.v1.serializers import ModalitySerializer
 from competitions.api.v1.messaging.publishers import generate_log_payload
 from competitions.api.v1.messaging.utils import run_async_audit
 
-SECRET_KEY = "django-insecure-f=td$@o*6$utz@_2kvjf$zss#*r_8f74whhgo9y#p7rz@t*ii("
+import os
+
+SECRET_KEY = os.environ.get('JWT_SECRET_KEY')
 ALGORITHM = "HS256"
 
 class ModalityAPIView(APIView):
@@ -87,7 +89,7 @@ class ModalityAPIView(APIView):
                     entity_id=modality.id,
                     operation_type="create",
                     campus_code=campus_code,
-                    user_registration=request.user.username,
+                    user_registration=request.user.matricula,
                     request_object=request,
                     new_data=ModalitySerializer(modality).data
                 )
@@ -146,7 +148,7 @@ class ModalityRetrieveUpdateDestroyAPIView(APIView):
                     entity_id=modality.id,
                     operation_type="update",
                     campus_code=campus_code,
-                    user_registration=request.user.username,
+                    user_registration=request.user.matricula,
                     request_object=request,
                     old_data=old_data,
                     new_data=new_data
@@ -183,7 +185,7 @@ class ModalityRetrieveUpdateDestroyAPIView(APIView):
                 entity_id=modality.id,
                 operation_type="delete",
                 campus_code=campus_code,
-                user_registration=request.user.username,
+                user_registration=request.user.matricula,
                 request_object=request,
                 old_data=old_data
             )
