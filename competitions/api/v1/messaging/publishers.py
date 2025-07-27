@@ -97,10 +97,11 @@ def generate_log_payload(
     else:
         ip = request_object.META.get('REMOTE_ADDR')
 
-    correlation_id = str(uuid.uuid4())
 
-    if request_object.correlation_id:
-        correlation_id = request_object.correlation_id
+    #if request_object.correlation_id:
+    #    correlation_id = request_object.correlation_id
+    #else:
+    correlation_id = str(uuid.uuid4())
 
     return{
         "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -111,7 +112,7 @@ def generate_log_payload(
         "event_type": event_type,
         "operation_type": operation_type,
         "entity_type": entity_type,
-        "entity_id": entity_id,
+        "entity_id": str(entity_id),
         "old_data": old_data,
         "new_data": new_data,
         "ip_address": ip
