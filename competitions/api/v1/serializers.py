@@ -23,7 +23,7 @@ class ModalitySerializer(serializers.ModelSerializer):
 
 
 class CompetitionTeamSerializer(serializers.ModelSerializer):
-    competition = serializers.PrimaryKeyRelatedField(queryset=Competition.objects.all())
+    competition = CompetitionSerializer()
     
     class Meta:
         model = CompetitionTeam
