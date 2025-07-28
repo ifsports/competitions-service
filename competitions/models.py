@@ -30,6 +30,12 @@ class Competition(models.Model):
         ('finished', 'Finished'),
     ]
 
+    PHASE_CHOICES = [
+        ('groups', 'Fase de Grupos'),
+        ('knockout', 'Fase Eliminatória'),
+        ('finished', 'Finalizada'),
+    ]
+
     name = models.CharField(max_length=100, blank=False, null=False)
     modality = models.ForeignKey(Modality, on_delete=models.CASCADE)
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='not-started')
@@ -40,6 +46,7 @@ class Competition(models.Model):
     min_members_per_team = models.IntegerField()
     teams_per_group = models.IntegerField(blank=True, null=True)
     teams_qualified_per_group = models.IntegerField(blank=True, null=True)
+    group_elimination_phase = models.CharField(max_length=30, blank=True, null=True, choices=PHASE_CHOICES, default='groups')
 
     def __str__(self):
         return self.name
