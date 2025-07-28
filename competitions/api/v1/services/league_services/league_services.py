@@ -1,5 +1,7 @@
-from competitions.models import Competition, Round, CompetitionTeam, Match, Classification
+from competitions.models import Competition, Round, CompetitionTeam, Match, Classification, Group
 from competitions.api.v1.messaging.publishers import publish_match_created
+from competitions.api.v1.services.group_elimination_services.groups_strandings import get_group_standings, update_group_standings
+from competitions.api.v1.services.group_elimination_services.generate_eliminations import update_next_match_after_finish
 import asyncio
 
 import uuid
@@ -69,12 +71,6 @@ def generate_league_competition(competition: Competition):
                 loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(loop)
                 loop.run_until_complete(publish_match_created(match_data))
-
-def generate_knockout_competition(competition: Competition):
-    pass
-
-def generate_groups_elimination(competition: Competition):
-    pass
 
 def get_league_standings(competition: Competition):
     """
@@ -176,13 +172,22 @@ def finish_match(match: Match):
     # Atualiza a classificação dos times com base no tipo da competição
     if match.competition.system == 'league':
         update_league_standings(competition=match.competition)
+        
     elif match.competition.system == 'elimination':
-        # Será implementado posteriormente
         pass
+    
     elif match.competition.system == 'groups_elimination':
-        # Será implementado posteriormente
-        pass
-
+        if match.competition.group_elimination_phase == 'groups':
+            group = match.group
+            if group:
+                update_group_standings(group)
+            else:
+                raise ValueError("A partida não está associada a um grupo válido.")
+        elif match.competition.group_elimination_phase == 'knockout':
+            update_next_match_after_finish(match)
+        else:
+            raise ValueError("Fase desconhecida ou competição finalizada.")
+        
 def get_competition_standings(competition: Competition):
     """
     Retorna a classificação dos times em uma competição.
@@ -193,8 +198,13 @@ def get_competition_standings(competition: Competition):
         # Será implementado posteriormente
         pass
     elif competition.system == 'groups_elimination':
-        # Será implementado posteriormente
-        pass
+        groups = Group.objects.filter(competition=competition)
+        standings = []
+        for group in groups:
+            group_standings = get_group_standings(group)
+            standings.extend(group_standings)
+
+        return standings
     else:
         raise ValueError("Tipo de competição desconhecido.")
 
@@ -298,7 +308,6 @@ def update_team_from_request_in_db_django(message_data: dict) -> dict:
         raise
     finally:
         close_old_connections()
-
 
 def handle_match_finished_message(message_data: dict) -> dict:
     """

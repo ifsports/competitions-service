@@ -65,6 +65,9 @@ def assign_teams_to_knockout_stage(competition: Competition):
     """
     print(f"Iniciando a atribuição de equipes para a fase eliminatória: {competition.name}")
     
+    competition.group_elimination_phase = 'knockout'
+    competition.save()
+
     clashes = create_first_round_clashes(competition)
     if not clashes: return
 
@@ -130,6 +133,7 @@ def update_next_match_after_finish(finished_match: Match):
     Match.objects.bulk_update(matches_to_save, ['team_home', 'team_away'])
     print(f"{len(matches_to_save)} partidas foram atualizadas com o vencedor da partida {finished_match.id}")
 
+# --- FUNÇÕES AUXILIARES ---
 
 def create_first_round_clashes(competition: Competition) -> list[tuple[str, str]]:
     """Cria os confrontos da primeira rodada com um sistema de seeding correto."""

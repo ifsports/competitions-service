@@ -594,7 +594,6 @@ class MatchesAPIView(APIView):
         serializer = MatchSerializer(page, many=True)
         return paginator.get_paginated_response(serializer.data)
 
-
 class MatchesTodayAPIView(APIView):
     permission_classes = [AllowAny]
 
@@ -616,7 +615,6 @@ class MatchesTodayAPIView(APIView):
 
         serializer = MatchSerializer(matches_queryset, many=True)
         return Response(serializer.data)
-
 
 class MatchRetrieveUpdateAPIView(APIView):
     def get_permissions(self):
@@ -768,7 +766,7 @@ class CompetitionStandingsAPIView(APIView):
     
         standings = get_competition_standings(competition)
 
-        if not standings.exists():
+        if not standings:
             return Response({"message": "No standings found for this competition."}, status=status.HTTP_404_NOT_FOUND)
 
         serializer = ClassificationSerializer(standings, many=True)

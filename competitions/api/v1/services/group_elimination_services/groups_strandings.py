@@ -2,7 +2,7 @@ from competitions.models import Group, Classification
 
 def get_group_standings(group: Group):
     """
-    Retorna a classificação dos times em uma competição do tipo 'league'.
+    Retorna a classificação dos times de um grupo'.
     """
     classifications = Classification.objects.filter(group=group).order_by('position')
 
