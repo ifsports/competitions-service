@@ -81,6 +81,7 @@ def generate_log_payload(
     campus_code: str,
     user_registration: str,
     request_object,
+    correlation_id: str | None = None,
     old_data: dict | None = None,
     new_data: dict | None = None,
 ) -> dict:
@@ -101,7 +102,8 @@ def generate_log_payload(
     #if request_object.correlation_id:
     #    correlation_id = request_object.correlation_id
     #else:
-    correlation_id = str(uuid.uuid4())
+    if not correlation_id:
+        correlation_id = str(uuid.uuid4())
 
     return{
         "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -141,9 +143,30 @@ async def publish_audit_log(log_payload: dict):
                 durable=True
             )
 
+             # 1. Montar o corpo no formato Celery: (args, kwargs, options)
+            celery_body = (
+                [log_payload],  # args: seu payload vai aqui
+                {},             # kwargs: vazio neste caso
+                {"callbacks": None, "errbacks": None, "chain": None, "chord": None},
+            )
+
+            # 2. Definir os cabeçalhos (headers) essenciais do Celery
+            task_id = str(uuid.uuid4())
+            celery_headers = {
+                'lang': 'py',
+                'task': 'process_audit_log', # O nome exato da sua tarefa
+                'id': task_id,
+                'root_id': task_id,
+                'parent_id': None,
+                'group': None,
+            }
+
+            # 3. Criar a mensagem aio_pika com todas as propriedades
             message = aio_pika.Message(
-                body=json.dumps(log_payload).encode(),
-                content_type="application/json",
+                body=json.dumps(celery_body).encode('utf-8'),
+                headers=celery_headers,
+                content_type='application/json',  # Celery usa JSON por padrão
+                content_encoding='utf-8',
                 delivery_mode=aio_pika.DeliveryMode.PERSISTENT
             )
 
@@ -153,6 +176,7 @@ async def publish_audit_log(log_payload: dict):
             await exchange.publish(message, routing_key=routing_key)
 
             print(f"[audit_service] Log enviado para exchange '{AUDIT_EXCHANGE}' com routing key '{routing_key}'")
+            print(f"[audit_service] Log payload: {log_payload}")
 
     except aio_pika.exceptions.AMQPConnectionError as e:
         print(f"Erro de conexão com RabbitMQ: {e}")
