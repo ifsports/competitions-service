@@ -769,5 +769,10 @@ class CompetitionStandingsAPIView(APIView):
         if not standings:
             return Response({"message": "No standings found for this competition."}, status=status.HTTP_404_NOT_FOUND)
 
-        serializer = ClassificationSerializer(standings, many=True)
+        if competition.system == 'elimination':
+            # As competições de eliminatorias apenas retornam as partidas ordenadas por fase
+            serializer = MatchSerializer(standings, many=True)
+        else:
+            serializer = ClassificationSerializer(standings, many=True)
+        
         return Response(serializer.data, status=status.HTTP_200_OK)

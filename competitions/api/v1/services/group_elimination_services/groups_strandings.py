@@ -1,12 +1,12 @@
-from competitions.models import Group, Classification
+from competitions.models import Group, Classification, Competition
 
-def get_group_standings(group: Group):
+def get_group_competition_standings(competition: Competition):
     """
-    Retorna a classificação dos times de um grupo'.
+    Retorna a classificação de uima competição de fase de grupos'.
     """
-    classifications = Classification.objects.filter(group=group).order_by('position')
-
-    return classifications
+    return Classification.objects.filter(
+            competition=competition,
+        ).order_by('group__name', 'position')
 
 def update_group_standings(group: Group):
     """

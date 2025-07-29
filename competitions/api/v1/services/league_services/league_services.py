@@ -1,8 +1,10 @@
 from competitions.models import Competition, Round, CompetitionTeam, Match, Classification, Group
 from competitions.api.v1.messaging.publishers import publish_match_created
-from competitions.api.v1.services.group_elimination_services.groups_strandings import get_group_standings, update_group_standings
+from competitions.api.v1.services.group_elimination_services.groups_strandings import update_group_standings, get_group_competition_standings
 from competitions.api.v1.services.group_elimination_services.generate_eliminations import update_next_match_after_finish
 import asyncio
+
+from django.db.models import Case, When, Value, IntegerField
 
 import uuid
 from django.db import transaction, IntegrityError, close_old_connections
@@ -79,6 +81,38 @@ def get_league_standings(competition: Competition):
     classifications = Classification.objects.filter(competition=competition).order_by('position')
 
     return classifications
+
+def get_ordered_elimination_matches(competition: Competition): # Nome da função melhorado
+    """
+    Retorna as partidas de uma fase eliminatória, ordenadas pelas fases
+    (16-avos, Oitavas, Quartas, etc.) e pelo número da partida.
+    """
+    
+    ordem_fases = [
+        '16-avos de Final',
+        'Oitavas de Final',
+        'Quartas de Final',
+        'Semifinal',
+        'Final'
+    ]
+
+    ordem_personalizada = Case(
+        *[When(round__name=fase, then=Value(i)) for i, fase in enumerate(ordem_fases)],
+        default=Value(len(ordem_fases)), 
+        output_field=IntegerField()
+    )
+
+    matches = Match.objects.filter(
+        competition=competition 
+    ).select_related(
+        'round', 'team_home', 'team_away', 'winner' 
+    ).annotate(
+        ordem_da_fase=ordem_personalizada 
+    ).order_by(
+        'ordem_da_fase', 'round_match_number'
+    )
+
+    return matches
 
 def update_league_standings(competition: Competition):
     """
@@ -169,13 +203,12 @@ def finish_match(match: Match):
 
     update_teams_statistics(match)
 
-    # Atualiza a classificação dos times com base no tipo da competição
     if match.competition.system == 'league':
         update_league_standings(competition=match.competition)
         
     elif match.competition.system == 'elimination':
-        pass
-    
+        update_next_match_after_finish(match)
+        
     elif match.competition.system == 'groups_elimination':
         if match.competition.group_elimination_phase == 'groups':
             group = match.group
@@ -195,16 +228,12 @@ def get_competition_standings(competition: Competition):
     if competition.system == 'league':
         return get_league_standings(competition)
     elif competition.system == 'elimination':
-        # Será implementado posteriormente
-        pass
+        return get_ordered_elimination_matches(competition)
     elif competition.system == 'groups_elimination':
-        groups = Group.objects.filter(competition=competition)
-        standings = []
-        for group in groups:
-            group_standings = get_group_standings(group)
-            standings.extend(group_standings)
-
-        return standings
+        if competition.group_elimination_phase == 'groups':
+            return get_group_competition_standings(competition)
+        elif competition.group_elimination_phase == 'knockout':
+            return get_ordered_elimination_matches(competition)
     else:
         raise ValueError("Tipo de competição desconhecido.")
 
