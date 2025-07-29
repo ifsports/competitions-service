@@ -192,7 +192,7 @@ def update_teams_statistics(match: Match):
     match.status = 'finished'
     match.save()
 
-    # Salva as alterações nos times
+    # Salva as alterações nas classificações dos times
     team_home.save()
     team_away.save()
 
@@ -208,7 +208,7 @@ def finish_match(match: Match):
         
     elif match.competition.system == 'elimination':
         update_next_match_after_finish(match)
-        
+
     elif match.competition.system == 'groups_elimination':
         if match.competition.group_elimination_phase == 'groups':
             group = match.group
@@ -378,21 +378,18 @@ def handle_match_finished_message(message_data: dict) -> dict:
 
         with transaction.atomic():
             if status_str == "finished":
-                if score_home > score_away:
-                    match_winner = team_home_for_db
-                elif score_home < score_away:
-                    match_winner = team_away_for_db
-                else:
-                    match_winner = None
 
                 updated = Match.objects.filter(id=match_id_for_db).update(
                     score_home=score_home,
                     score_away=score_away,
-                    status=status_str,
-                    winner=match_winner
                 )
+
+                match = Match.objects.filter(id=match_id_for_db).first()
+
                 if updated == 0:
                     raise ValueError(f"Match com ID '{match_id_for_db}' não encontrada.")
+                
+                finish_match(match)
 
     except ValueError as ve:
         print(f"DJANGO_DB: Erro de dados ou validação: {ve}")
