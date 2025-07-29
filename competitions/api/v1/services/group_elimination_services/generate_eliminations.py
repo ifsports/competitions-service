@@ -1,8 +1,10 @@
+import asyncio
 from math import log2, ceil
 from django.db.models import Q
 
 # Importe os seus modelos
 from competitions.models import Competition, Group, Round, Match, Classification
+from ...messaging.publishers import publish_match_created
 
 def generate_elimination_stage(competition: Competition):
     """
@@ -33,6 +35,23 @@ def generate_elimination_stage(competition: Competition):
             team_home=None, team_away=None,
             round_match_number=i, status='pending',
         )
+
+        match_data = {
+                'match_id': str(match.id),
+                'team_home_id': str(match.team_home.team_id),
+                'team_away_id': str(match.team_away.team_id),
+                'status': 'pending',
+                'competition_id': str(competition.id),
+            }
+
+            # Publica a partida criada no RabbitMQ
+        try:
+            asyncio.get_event_loop().run_until_complete(publish_match_created(match_data))
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            loop.run_until_complete(publish_match_created(match_data))
+
         previous_round_matches.append(match)
         
     # 2. GERAÇÃO DAS RODADAS SUBSEQUENTES COM LIGAÇÕES FEEDER
@@ -51,6 +70,23 @@ def generate_elimination_stage(competition: Competition):
                 home_feeder_match=home_feeder,
                 away_feeder_match=away_feeder,
             )
+
+            match_data = {
+                'match_id': str(match.id),
+                'team_home_id': str(match.team_home.team_id),
+                'team_away_id': str(match.team_away.team_id),
+                'status': 'pending',
+                'competition_id': str(competition.id),
+            }
+
+            # Publica a partida criada no RabbitMQ
+            try:
+                asyncio.get_event_loop().run_until_complete(publish_match_created(match_data))
+            except RuntimeError:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                loop.run_until_complete(publish_match_created(match_data))
+
             current_round_matches.append(match)
             
         previous_round_matches = current_round_matches
