@@ -5,7 +5,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv('SECRET_KEY', 'unsafe-default')
 DEBUG = int(os.getenv('DEBUG', 0))
-ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', 'localhost 0.0.0.0').split(' ')
+ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS',
+                          'localhost 0.0.0.0').split(' ')
 
 INSTALLED_APPS = [
     'django.contrib.contenttypes',
@@ -25,8 +26,8 @@ ROOT_URLCONF = 'competitions_service.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [], 
-        'APP_DIRS': True, 
+        'DIRS': [],
+        'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',
@@ -81,4 +82,7 @@ SPECTACULAR_SETTINGS = {
     'DESCRIPTION': 'Documentação da API para o serviço responsavel por gerir as competições.',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
+    'SWAGGER_UI_SETTINGS': {
+        'url': '/competitions/api/schema/',
+    },
 }
