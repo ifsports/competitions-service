@@ -36,22 +36,6 @@ def generate_elimination_stage(competition: Competition):
             round_match_number=i, status='pending',
         )
 
-        match_data = {
-                'match_id': str(match.id),
-                'team_home_id': str(match.team_home.team_id),
-                'team_away_id': str(match.team_away.team_id),
-                'status': 'pending',
-                'competition_id': str(competition.id),
-            }
-
-            # Publica a partida criada no RabbitMQ
-        try:
-            asyncio.get_event_loop().run_until_complete(publish_match_created(match_data))
-        except RuntimeError:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-            loop.run_until_complete(publish_match_created(match_data))
-
         previous_round_matches.append(match)
         
     # 2. GERAÇÃO DAS RODADAS SUBSEQUENTES COM LIGAÇÕES FEEDER
@@ -70,22 +54,6 @@ def generate_elimination_stage(competition: Competition):
                 home_feeder_match=home_feeder,
                 away_feeder_match=away_feeder,
             )
-
-            match_data = {
-                'match_id': str(match.id),
-                'team_home_id': str(match.team_home.team_id),
-                'team_away_id': str(match.team_away.team_id),
-                'status': 'pending',
-                'competition_id': str(competition.id),
-            }
-
-            # Publica a partida criada no RabbitMQ
-            try:
-                asyncio.get_event_loop().run_until_complete(publish_match_created(match_data))
-            except RuntimeError:
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-                loop.run_until_complete(publish_match_created(match_data))
 
             current_round_matches.append(match)
             
@@ -126,6 +94,7 @@ def assign_teams_to_knockout_stage(competition: Competition):
             placeholder_to_real_team_map[placeholder_name] = classification.team
     
     matches_to_update = []
+    matches_data_to_publish = []
     for i, match in enumerate(first_round_matches):
         home_placeholder_name, away_placeholder_name = clashes[i]
         
@@ -137,8 +106,31 @@ def assign_teams_to_knockout_stage(competition: Competition):
             continue
         matches_to_update.append(match)
 
-    Match.objects.bulk_update(matches_to_update, ['team_home', 'team_away'])
-    print(f"Atribuição concluída. {len(matches_to_update)} partidas foram atualizadas.")
+        match_data = {
+            'match_id': str(match.id),
+            'team_home_id': str(match.team_home.team_id),
+            'team_away_id': str(match.team_away.team_id),
+            'status': match.status,
+            'competition_id': str(competition.id),
+        }
+
+        matches_data_to_publish.append(match_data)
+
+    if matches_to_update:
+        Match.objects.bulk_update(matches_to_update, ['team_home', 'team_away'])
+        print(f"Atribuição concluída. {len(matches_to_update)} partidas foram atualizadas.")
+
+        print(f"Publicando {len(matches_data_to_publish)} partidas atualizadas na fila...")
+        for data in matches_data_to_publish:
+            try:
+                asyncio.get_event_loop().run_until_complete(publish_match_created(data))
+            except RuntimeError:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                loop.run_until_complete(publish_match_created(data))
+        print("Publicação para o match-comments concluída.")
+    else:
+        print("Nenhuma partida foi atualizada.")
 
 
 # --- FUNÇÃO DE ATUALIZAÇÃO (CHAMAR QUANDO UMA PARTIDA TERMINA) ---
@@ -157,6 +149,8 @@ def update_next_match_after_finish(finished_match: Match):
     )
 
     matches_to_save = []
+    matches_to_publish_data = []
+
     for next_match in next_matches:
         if next_match.home_feeder_match == finished_match:
             next_match.team_home = finished_match.winner
@@ -165,9 +159,34 @@ def update_next_match_after_finish(finished_match: Match):
         
         matches_to_save.append(next_match)
 
-    # Atualiza todas as partidas encontradas de uma vez
-    Match.objects.bulk_update(matches_to_save, ['team_home', 'team_away'])
-    print(f"{len(matches_to_save)} partidas foram atualizadas com o vencedor da partida {finished_match.id}")
+        if next_match.team_home and next_match.team_away:
+            print(f"Partida {next_match.id} está completa: {next_match.team_home.team.name} vs {next_match.team_away.team.name}. Preparando para publicação.")
+            
+            match_data = {
+                'match_id': str(next_match.id),
+                'team_home_id': str(next_match.team_home.team_id),
+                'team_away_id': str(next_match.team_away.team_id),
+                'status': next_match.status,
+                'competition_id': str(next_match.competition_id),
+            }
+            matches_to_publish_data.append(match_data)
+
+    if matches_to_save:
+        Match.objects.bulk_update(matches_to_save, ['team_home', 'team_away'])
+        print(f"{len(matches_to_save)} partidas foram atualizadas com o vencedor da partida {finished_match.id}")
+
+
+    if matches_to_publish_data:
+        print(f"Publicando {len(matches_to_publish_data)} partidas que foram completadas...")
+        for data in matches_to_publish_data:
+            try:
+                asyncio.get_event_loop().run_until_complete(publish_match_created(data))
+            except RuntimeError:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                loop.run_until_complete(publish_match_created(data))
+        
+        print("Publicação para o match-comments concluída.")
 
 # --- FUNÇÕES AUXILIARES ---
 

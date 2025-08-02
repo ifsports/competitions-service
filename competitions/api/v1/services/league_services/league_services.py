@@ -15,6 +15,29 @@ def generate_league_competition(competition: Competition):
     Gera uma competição do tipo 'league' com rounds (rodadas) e jogos.
     """
     teams = list(CompetitionTeam.objects.filter(competition=competition))
+    
+# --- NOVO TRECHO: Início da criação da classificação ---
+    # Prepara a criação da classificação para cada time
+    classifications_to_create = [
+        Classification(
+            competition=competition,
+            team=team,
+            points=0,
+            position=0,
+            games_played=0,
+            wins=0,
+            draws=0,
+            losses=0,
+	    score_pro=0,
+            score_against=0,
+	    score_difference=0
+        ) for team in teams
+    ]
+    # Cria todos os objetos de classificação em uma única consulta
+    if classifications_to_create:
+        Classification.objects.bulk_create(classifications_to_create)
+    # --- FIM DO NOVO TRECHO ---
+
     total_teams = len(teams)
 
     if total_teams < 2:

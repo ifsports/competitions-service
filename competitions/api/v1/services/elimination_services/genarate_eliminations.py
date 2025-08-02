@@ -4,7 +4,7 @@ import random
 
 from ...messaging.publishers import publish_match_created
 
-from competitions.models import Competition, CompetitionTeam, Round, Match
+from competitions.models import Competition, Classification, CompetitionTeam, Round, Match
 
 def generate_elimination_only_competition(competition: Competition):
     """
@@ -22,7 +22,30 @@ def generate_elimination_only_competition(competition: Competition):
     
     # 1. Busca e Semeia (Seed) as Equipes
     all_teams = list(CompetitionTeam.objects.filter(competition=competition))
-    
+
+ # --- NOVO TRECHO: Início da criação da classificação ---
+    # Usando os nomes de campos do seu modelo `Classification`.
+    classifications_to_create = [
+        Classification(
+            competition=competition,
+            team=team,
+            group=None,  # Eliminatória simples não tem grupo
+            position=0,  # Posição será definida ao final
+            points=0,
+            games_played=0,
+            wins=0,
+            losses=0,
+            draws=0,
+            score_pro=0,
+            score_against=0,
+            score_difference=0
+        ) for team in all_teams
+    ]
+    # Cria todos os objetos de classificação em uma única consulta ao banco
+    if classifications_to_create:
+        Classification.objects.bulk_create(classifications_to_create)
+    # --- FIM DO NOVO TRECHO ---
+
     # Seeding Aleatório: Embaralha a lista de equipes.
     # Se você tivesse um ranking, ordenaria a lista aqui em vez de embaralhar.
     random.shuffle(all_teams)
