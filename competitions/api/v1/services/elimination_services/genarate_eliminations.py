@@ -71,7 +71,7 @@ def generate_elimination_only_competition(competition: Competition):
 
     # 3. Gera a Rodada Preliminar (se necessário)
     preliminary_round_matches = []
-    if num_preliminary_matches > 0:
+    if num_byes > 0:
         preliminary_round = Round.objects.create(name="Rodada Preliminar")
         
         # Agrupa as equipes da preliminar de 2 em 2
