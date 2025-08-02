@@ -127,7 +127,7 @@ class CompetitionRetrieveUpdateDestroyAPIView(APIView):
         Retorna uma competição específica.
         """
         
-        competition = Competition.objects.filter(id=competition_id)
+        competition = get_object_or_404(Competition, id=competition_id)
 
         serializer = CompetitionSerializer(competition)
         
