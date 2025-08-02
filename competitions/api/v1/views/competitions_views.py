@@ -378,8 +378,8 @@ class GenerateCompetitionsAPIView(APIView):
                 try:
                     generate_elimination_only_competition(competition)
                     return Response({'message': 'Elimination competition generated succesfully.'}, status=status.HTTP_201_CREATED)
-                except:
-                    return Response({'error': str(e)})
+                except ValueError as e:
+                    return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         else:
             raise PermissionDenied("Você não tem permissão para gerar uma competição.")
