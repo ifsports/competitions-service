@@ -156,22 +156,6 @@ def generate_elimination_only_competition(competition: Competition):
                 status='pending',
             )
 
-            match_data = {
-                'match_id': str(match.id),
-                'team_home_id': str(match.team_home.team_id),
-                'team_away_id': str(match.team_away.team_id),
-                'status': 'pending',
-                'competition_id': str(competition.id),
-            }
-
-            # Publica a partida criada no RabbitMQ
-            try:
-                asyncio.get_event_loop().run_until_complete(publish_match_created(match_data))
-            except RuntimeError:
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-                loop.run_until_complete(publish_match_created(match_data))
-
             current_round_feeders.append(match)
         
         previous_round_feeders = current_round_feeders
