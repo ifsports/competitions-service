@@ -9,114 +9,70 @@ from competitions.models import Competition, Classification, CompetitionTeam, Ro
 def generate_elimination_only_competition(competition: Competition):
     """
     Gera a árvore de confrontos para uma competição de eliminatória simples.
-
-    ESTRATÉGIA:
-    1. Busca todas as equipes inscritas na competição.
-    2. Realiza o seeding (neste caso, aleatório).
-    3. Lida com um número de equipes que não é uma potência de 2, criando uma
-       rodada preliminar para os piores "seeds" e dando "bye" para os melhores.
-    4. Gera todas as rodadas e partidas, já com as ligações "feeder" quando aplicável.
     """
-
     print(f"Iniciando a geração da competição eliminatória: {competition.name}")
     
-    # 1. Busca e Semeia (Seed) as Equipes
     all_teams = list(CompetitionTeam.objects.filter(competition=competition))
 
- # --- NOVO TRECHO: Início da criação da classificação ---
-    # Usando os nomes de campos do seu modelo `Classification`.
     classifications_to_create = [
         Classification(
-            competition=competition,
-            team=team,
-            group=None,  # Eliminatória simples não tem grupo
-            position=0,  # Posição será definida ao final
-            points=0,
-            games_played=0,
-            wins=0,
-            losses=0,
-            draws=0,
-            score_pro=0,
-            score_against=0,
-            score_difference=0
+            competition=competition, team=team, group=None, position=0, points=0,
+            games_played=0, wins=0, losses=0, draws=0, score_pro=0,
+            score_against=0, score_difference=0
         ) for team in all_teams
     ]
-    # Cria todos os objetos de classificação em uma única consulta ao banco
     if classifications_to_create:
         Classification.objects.bulk_create(classifications_to_create)
-    # --- FIM DO NOVO TRECHO ---
 
-    # Seeding Aleatório: Embaralha a lista de equipes.
-    # Se você tivesse um ranking, ordenaria a lista aqui em vez de embaralhar.
     random.shuffle(all_teams)
     
     num_teams = len(all_teams)
     if num_teams < 2:
-        print("ERRO: São necessárias pelo menos 2 equipes para uma competição eliminatória.")
-        return
+        raise ValueError("ERRO: São necessárias pelo menos 2 equipes para uma competição eliminatória.")
 
-    # 2. Lida com um número de equipes que não é uma potência de 2
     next_power_of_two = 2**ceil(log2(num_teams))
     num_byes = next_power_of_two - num_teams
-    num_preliminary_matches = num_teams - num_byes
     
-    # As equipes com "bye" são as melhores semeadas (as primeiras da lista embaralhada)
     teams_with_bye = all_teams[:num_byes]
-    # As equipes que jogam a fase preliminar são as piores semeadas
     teams_in_preliminary = all_teams[num_byes:]
 
     print(f"Total de equipes: {num_teams}")
     print(f"Equipes com 'bye' (avançam direto): {num_byes}")
-    print(f"Equipes na rodada preliminar: {len(teams_in_preliminary)}")
+    print(f"Equipes na rodada preliminar: {len(teams_in_preliminary) if num_byes > 0 else 0}")
 
-    # 3. Gera a Rodada Preliminar (se necessário)
     preliminary_round_matches = []
+    # Correção 1: Condição para criar a rodada preliminar
     if num_byes > 0:
         preliminary_round = Round.objects.create(name="Rodada Preliminar")
-        
-        # Agrupa as equipes da preliminar de 2 em 2
         match_pairs = zip(teams_in_preliminary[::2], teams_in_preliminary[1::2])
         
         for i, (team1, team2) in enumerate(match_pairs, start=1):
             match = Match.objects.create(
-                competition=competition,
-                round=preliminary_round,
-                team_home=team1,
-                team_away=team2,
-                round_match_number=i,
-                status='pending'
+                competition=competition, round=preliminary_round, team_home=team1,
+                team_away=team2, round_match_number=i, status='pending'
             )
-
             match_data = {
-                'match_id': str(match.id),
-                'team_home_id': str(match.team_home.team_id),
-                'team_away_id': str(match.team_away.team_id),
-                'status': 'pending',
+                'match_id': str(match.id), 'team_home_id': str(match.team_home.team_id),
+                'team_away_id': str(match.team_away.team_id), 'status': 'pending',
                 'competition_id': str(competition.id),
             }
-
-            # Publica a partida criada no RabbitMQ
             try:
                 asyncio.get_event_loop().run_until_complete(publish_match_created(match_data))
             except RuntimeError:
                 loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(loop)
                 loop.run_until_complete(publish_match_created(match_data))
-
-
             preliminary_round_matches.append(match)
 
-    # 4. Gera a Árvore Principal
-    # As equipes na próxima rodada são uma mistura das que tiveram "bye" e
-    # dos vencedores da rodada preliminar.
-    
-    # Os "feeders" da próxima rodada
     next_round_feeders = [
-        *teams_with_bye,          # Equipes reais que passaram direto
-        *preliminary_round_matches # Partidas que "alimentarão" as próximas vagas
+        *teams_with_bye,
+        *preliminary_round_matches
     ]
     
-    # Embaralha os feeders para que uma equipe com bye possa enfrentar outra
+    # Correção 2: Garante que os feeders não fiquem vazios
+    if not next_round_feeders:
+        next_round_feeders = all_teams
+
     random.shuffle(next_round_feeders)
     
     previous_round_feeders = next_round_feeders
@@ -126,36 +82,27 @@ def generate_elimination_only_competition(competition: Competition):
         round_obj = Round.objects.create(name=round_name)
         current_round_feeders = []
         
-        # Agrupa os "feeders" da rodada anterior de 2 em 2
         feeder_pairs = zip(previous_round_feeders[::2], previous_round_feeders[1::2])
 
         for i, (home_feeder, away_feeder) in enumerate(feeder_pairs, start=1):
-            
-            # Lógica para atribuir os times ou os feeders
             team_home, team_away = None, None
             feeder_home, feeder_away = None, None
 
             if isinstance(home_feeder, CompetitionTeam):
                 team_home = home_feeder
-            else: # É uma partida (Match)
+            else:
                 feeder_home = home_feeder
 
             if isinstance(away_feeder, CompetitionTeam):
                 team_away = away_feeder
-            else: # É uma partida (Match)
+            else:
                 feeder_away = away_feeder
 
             match = Match.objects.create(
-                competition=competition,
-                round=round_obj,
-                team_home=team_home,
-                team_away=team_away,
-                home_feeder_match=feeder_home,
-                away_feeder_match=feeder_away,
-                round_match_number=i,
-                status='pending',
+                competition=competition, round=round_obj, team_home=team_home,
+                team_away=team_away, home_feeder_match=feeder_home,
+                away_feeder_match=feeder_away, round_match_number=i, status='pending'
             )
-
             current_round_feeders.append(match)
         
         previous_round_feeders = current_round_feeders
