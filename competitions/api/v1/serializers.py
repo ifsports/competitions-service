@@ -52,11 +52,26 @@ class MatchSerializer(serializers.ModelSerializer):
     team_home = CompetitionTeamSerializer(read_only=True)
     team_away = CompetitionTeamSerializer(read_only=True)
 
-    
+    team_home_id = serializers.PrimaryKeyRelatedField(
+        queryset=CompetitionTeam.objects.all(),
+        source='team_home',
+        write_only=True,
+        required=False,
+        allow_null=True
+    )
+    team_away_id = serializers.PrimaryKeyRelatedField(
+        queryset=CompetitionTeam.objects.all(),
+        source='team_away',
+        write_only=True,
+        required=False,
+        allow_null=True
+    )
+
     class Meta:
         model = Match
-        fields = ["id","competition", "group", "round", "round_match_number", "status", "scheduled_datetime", "team_home",
-                    "team_away", "score_home", "score_away", "winner"]
+        fields = ["id", "competition", "group", "round", "round_match_number", "status",
+                  "scheduled_datetime", "team_home", "team_away", "team_home_id",
+                  "team_away_id", "score_home", "score_away", "winner"]
 
 class RoundSerializer(serializers.ModelSerializer):
     """

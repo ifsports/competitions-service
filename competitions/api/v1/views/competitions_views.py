@@ -644,7 +644,7 @@ class MatchRetrieveUpdateAPIView(APIView):
 
             if serializer.is_valid():
                 old_data = MatchSerializer(match).data
-                match = serializer.save(partial=True)
+                match = serializer.save()
                 new_data = MatchSerializer(match).data
 
                 # Gera o payload de auditoria (match.updated)
