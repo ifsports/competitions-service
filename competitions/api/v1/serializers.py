@@ -11,7 +11,7 @@ class CompetitionSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'name', 'modality', 'status',
             'start_date', 'end_date', 'system', 'image',
-            'min_members_per_team', 'teams_per_group', 'teams_qualified_per_group'
+            'min_members_per_team', 'max_members_per_team' 'teams_per_group', 'teams_qualified_per_group'
         ]
 
 class ModalitySerializer(serializers.ModelSerializer):

@@ -44,6 +44,7 @@ class Competition(models.Model):
     system = models.CharField(max_length=30, choices=SYSTEM_CHOICES)
     image = models.ImageField(upload_to='competitions/')
     min_members_per_team = models.IntegerField()
+    max_members_per_team = models.ImageField(default=1)
     teams_per_group = models.IntegerField(blank=True, null=True)
     teams_qualified_per_group = models.IntegerField(blank=True, null=True)
     group_elimination_phase = models.CharField(max_length=30, blank=True, null=True, choices=PHASE_CHOICES, default='groups')
