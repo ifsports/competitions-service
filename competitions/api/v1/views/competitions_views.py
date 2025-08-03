@@ -160,7 +160,7 @@ class CompetitionRetrieveUpdateDestroyAPIView(APIView):
                     entity_id=competition.id,
                     operation_type="UPDATE",
                     campus_code=competition.modality.campus,
-                    user_registration=request.user.user_matricula,
+                    user_registration=request.user.matricula,
                     request_object=request,
                     old_data=old_competition,
                     new_data=new_competition
@@ -197,7 +197,7 @@ class CompetitionRetrieveUpdateDestroyAPIView(APIView):
                 entity_id=competition.id,
                 operation_type="DELETE",
                 campus_code=competition.modality.campus,
-                user_registration=request.user.user_matricula,
+                user_registration=request.user.matricula,
                 request_object=request,
                 old_data=old_competition
             )
@@ -236,7 +236,7 @@ class CompetitionSetInProgress(APIView):
                     entity_id=competition.id,
                     operation_type="UPDATE",
                     campus_code=competition.modality.campus,
-                    user_registration=request.user.user_matricula,
+                    user_registration=request.user.matricula,
                     request_object=request,
                     old_data={"status": old_competition.status},
                     new_data={"status": competition.status}
@@ -278,7 +278,7 @@ class CompetitionSetFinished(APIView):
                     entity_id=competition.id,
                     operation_type="UPDATE",
                     campus_code=competition.modality.campus,
-                    user_registration=request.user.user_matricula,
+                    user_registration=request.user.matricula,
                     request_object=request,
                     old_data={"status": old_competition.status},
                     new_data={"status": competition.status}
@@ -655,7 +655,7 @@ class MatchRetrieveUpdateAPIView(APIView):
                     entity_id=match.id,
                     operation_type="UPDATE",
                     campus_code=match.competition.modality.campus,
-                    user_registration=request.user.user_matricula,
+                    user_registration=request.user.matricula,
                     request_object=request,
                     old_data=old_data,
                     new_data=new_data
@@ -697,7 +697,7 @@ class MatchStartAPIView(APIView):
                     entity_id=match.id,
                     operation_type="UPDATE",
                     campus_code=match.competition.modality.campus,
-                    user_registration=request.user.user_matricula,
+                    user_registration=request.user.matricula,
                     request_object=request,
                     old_data=old_data,
                     new_data=new_data
@@ -738,7 +738,7 @@ class MatchFinishAPIView(APIView):
                     entity_id=match.id,
                     operation_type="UPDATE",
                     campus_code=match.competition.modality.campus,
-                    user_registration=request.user.user_matricula,
+                    user_registration=request.user.matricula,
                     request_object=request,
                     old_data=old_data,
                     new_data=new_data
