@@ -48,7 +48,7 @@ class CompetitionTeamsInfoSerializer(serializers.ModelSerializer):
 
 class MatchSerializer(serializers.ModelSerializer):
     group = serializers.PrimaryKeyRelatedField(queryset=Group.objects.all(), required=False)
-    round = serializers.PrimaryKeyRelatedField(queryset=Round.objects.all(), required=False)
+    round = serializers.PrimaryKeyRelatedField(queryset=Round.objects.all(), required=False, allow_null=True)
     team_home = CompetitionTeamSerializer(read_only=True)
     team_away = CompetitionTeamSerializer(read_only=True)
 
