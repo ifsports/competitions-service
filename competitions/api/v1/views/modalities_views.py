@@ -164,12 +164,12 @@ class ModalityRetrieveUpdateDestroyAPIView(APIView):
         else:
             raise PermissionDenied("Você não tem permissão para atualizar uma modalidade.")
 
-    def delete(self, request, campus_code, modality_id):
+    def delete(self, request, modality_id):
         """
         Deleta uma modalidade específica para um campus específico.
         """
         groups = request.user.groups
-        campus_code = request.user.groups
+        campus_code = request.user.campus
 
         modality = get_object_or_404(Modality, id=modality_id, campus=campus_code)
 
