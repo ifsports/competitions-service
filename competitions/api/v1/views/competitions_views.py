@@ -768,7 +768,13 @@ class CompetitionMatchesAPIView(APIView):
 
         competition = get_object_or_404(Competition, id=competition_id)
 
-        matches_queryset = Match.objects.filter(competition=competition).all()
+        matches_queryset = Match.objects.filter(competition=competition).select_related(
+            'team_home__competition',
+            'team_away__competition',
+            'group',
+            'round',
+            'winner'
+        )
 
         paginator = PageNumberPagination()
         page = paginator.paginate_queryset(
