@@ -731,14 +731,14 @@ class CompetitionRoundMatchesAPIView(APIView):
             Prefetch(
                 'match_set',
                 queryset=Match.objects.select_related(
-                    'team_home',
-                    'team_away',
+                    'team_home__competition',
+                    'team_away__competition',
                     'competition',
                     'group',
                     'round'
                 )
             )
-        ).distinct()
+        )
 
         paginator = PageNumberPagination()
 
@@ -803,12 +803,12 @@ class RoundMatchesAPIView(APIView):
 
         round = Round.objects.filter(id=round_id).prefetch_related(
             Prefetch('match_set', queryset=Match.objects.select_related(
-                'team_home',
-                'team_away',
+                'team_home__competition',
+                'team_away__competition',
                 'group',
                 'round',
                 'competition'
-            ))).distinct().first()
+            )))
 
         matches = round.match_set.all()
 

@@ -128,7 +128,7 @@ def get_ordered_elimination_matches(competition: Competition): # Nome da funçã
     matches = Match.objects.filter(
         competition=competition 
     ).select_related(
-        'round', 'team_home', 'team_away', 'winner' 
+        'round', 'team_home__competition', 'team_away__competition', 'winner' 
     ).annotate(
         ordem_da_fase=ordem_personalizada 
     ).order_by(
